@@ -947,10 +947,29 @@
                 const startBtn = document.getElementById('startBtn');
                 const resultsBtn = document.getElementById('resultsBtn');
                 
+                // Set the current player name if it exists
+                if (playerName) {
+                    select.value = playerName;
+                    startBtn.disabled = false;
+                }
+                
                 select.addEventListener('change', (e) => {
                     playerName = e.target.value;
                     startBtn.disabled = !playerName;
-                    render();
+                    
+                    // Update the voted notice without full re-render
+                    const noticeContainer = e.target.parentElement;
+                    const existingNotice = noticeContainer.querySelector('.voted-notice');
+                    if (existingNotice) {
+                        existingNotice.remove();
+                    }
+                    
+                    if (playerName && hasVoted[playerName]) {
+                        const notice = document.createElement('p');
+                        notice.className = 'voted-notice';
+                        notice.textContent = "✓ You've already voted! You can vote again to update your answers.";
+                        noticeContainer.appendChild(notice);
+                    }
                 });
                 
                 startBtn.addEventListener('click', () => {
