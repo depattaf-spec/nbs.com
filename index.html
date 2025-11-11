@@ -536,8 +536,15 @@
                 font-size: 16px;
             }
             
+            /* Keep 2 columns for quiz options on mobile */
             .options-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .option-btn {
+                padding: 16px 12px;
+                font-size: 14px;
             }
             
             .result-content {
@@ -1259,7 +1266,8 @@
 
         function QuizScreen() {
             const question = questions[currentQuestion];
-            const categoryEmoji = question.category === 'fun' ? '😄 Fun' : question.category === 'skills' ? '💪 Skills' : '✨ Personality';
+            // Extract emoji from award (first emoji in the string)
+            const awardEmoji = question.award.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || '✨';
             
             return `
                 <div class="container">
@@ -1280,7 +1288,7 @@
                         </div>
                         
                         <div class="question-card" style="background: ${question.gradient}">
-                            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; opacity: 0.9;">${categoryEmoji}</div>
+                            <div style="font-size: 48px; margin-bottom: 16px;">${awardEmoji}</div>
                             <p class="question-text">${question.question}</p>
                         </div>
                         
