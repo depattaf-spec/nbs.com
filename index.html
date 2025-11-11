@@ -554,6 +554,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://zxmljycgcxvpliqkfzbd.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4bWxqeWNnY3h2cGxpcWtmemJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjMzOTMsImV4cCI6MjA3ODQzOTM5M30.d84DHtVKYeNq1yFNQ86mG4t5jbRuB9hR27Md4uqFZe8';
@@ -563,16 +564,21 @@
         const teamMembers = ['Andreas', 'Raquel', 'Sara', 'Ines', 'Nicole', 'Federico'];
         
         const questions = [
-            { id: 1, question: "Who is most likely to accidentally start a fire while cooking?", award: "🔥 The Fire Starter", gradient: "linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)" },
-            { id: 2, question: "If stranded on a desert island, who would become the leader?", award: "🏝️ The Natural Leader", gradient: "linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)" },
-            { id: 3, question: "Who would survive the longest in a zombie apocalypse?", award: "🧟 The Survival Expert", gradient: "linear-gradient(135deg, #059669 0%, #14b8a6 100%)" },
-            { id: 4, question: "Who would be brave enough to do karaoke without any drinks first?", award: "🎤 The Fearless Performer", gradient: "linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)" },
-            { id: 5, question: "Who has the worst sense of direction and gets lost easily?", award: "🗺️ The Adventurous Explorer", gradient: "linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)" },
-            { id: 6, question: "Who can't function without coffee in the morning?", award: "☕ The Coffee Connoisseur", gradient: "linear-gradient(135deg, #b45309 0%, #ca8a04 100%)" },
-            { id: 7, question: "Who would accidentally reply-all to an email and cause chaos?", award: "😂 The Chaos Creator", gradient: "linear-gradient(135deg, #db2777 0%, #f43f5e 100%)" },
-            { id: 8, question: "Who is the most creative person on the team?", award: "🎨 The Creative Genius", gradient: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)" },
-            { id: 9, question: "Who would eat pineapple on pizza without complaining?", award: "🍕 The Bold Taste Tester", gradient: "linear-gradient(135deg, #dc2626 0%, #fb923c 100%)" },
-            { id: 10, question: "Who is most likely to organize a spontaneous team outing?", award: "🎉 The Party Starter", gradient: "linear-gradient(135deg, #c026d3 0%, #ec4899 100%)" }
+            { id: 1, question: "Who is most likely to accidentally start a fire while cooking?", award: "🔥 The Fire Starter", gradient: "linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)", category: "fun" },
+            { id: 2, question: "If stranded on a desert island, who would become the leader?", award: "🏝️ The Natural Leader", gradient: "linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)", category: "personality" },
+            { id: 3, question: "Who would survive the longest in a zombie apocalypse?", award: "🧟 The Survival Expert", gradient: "linear-gradient(135deg, #059669 0%, #14b8a6 100%)", category: "skills" },
+            { id: 4, question: "Who would be brave enough to do karaoke without any drinks first?", award: "🎤 The Fearless Performer", gradient: "linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)", category: "personality" },
+            { id: 5, question: "Who has the worst sense of direction and gets lost easily?", award: "🗺️ The Adventurous Explorer", gradient: "linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)", category: "fun" },
+            { id: 6, question: "Who can't function without coffee in the morning?", award: "☕ The Coffee Connoisseur", gradient: "linear-gradient(135deg, #b45309 0%, #ca8a04 100%)", category: "personality" },
+            { id: 7, question: "Who would accidentally reply-all to an email and cause chaos?", award: "😂 The Chaos Creator", gradient: "linear-gradient(135deg, #db2777 0%, #f43f5e 100%)", category: "fun" },
+            { id: 8, question: "Who is the most creative person on the team?", award: "🎨 The Creative Genius", gradient: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)", category: "skills" },
+            { id: 9, question: "Who would eat pineapple on pizza without complaining?", award: "🍕 The Bold Taste Tester", gradient: "linear-gradient(135deg, #dc2626 0%, #fb923c 100%)", category: "fun" },
+            { id: 10, question: "Who is most likely to organize a spontaneous team outing?", award: "🎉 The Party Starter", gradient: "linear-gradient(135deg, #c026d3 0%, #ec4899 100%)", category: "personality" },
+            { id: 11, question: "Who would win in a dance-off competition?", award: "💃 The Dance Floor Legend", gradient: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)", category: "skills" },
+            { id: 12, question: "Who always has the best memes and funny videos?", award: "😎 The Meme Lord", gradient: "linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)", category: "fun" },
+            { id: 13, question: "Who would be the first to fall asleep during a movie night?", award: "😴 The Power Napper", gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)", category: "fun" },
+            { id: 14, question: "Who gives the best life advice when you need it?", award: "🧠 The Wise One", gradient: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)", category: "personality" },
+            { id: 15, question: "Who would survive the longest without checking their phone?", award: "📵 The Digital Detox Champion", gradient: "linear-gradient(135deg, #10b981 0%, #34d399 100%)", category: "skills" }
         ];
 
         let currentScreen = 'welcome';
@@ -583,11 +589,192 @@
         let loading = true;
         let error = null;
         let debugLog = [];
+        let badges = {}; // Track achievements
+        let votingStartTimes = {}; // Track voting speed
+        
+        // Profile pictures - replace with real image URLs or use initials
+        const profilePics = {
+            'Andreas': '👨‍💼',
+            'Raquel': '👩‍💼', 
+            'Sara': '👩‍🦰',
+            'Ines': '👩‍🦱',
+            'Nicole': '👩',
+            'Federico': '👨'
+        };
 
         function addDebugLog(message) {
             const timestamp = new Date().toISOString();
             debugLog.push(`[${timestamp}] ${message}`);
             console.log(message);
+        }
+
+        // Sound effects using Web Audio API
+        function playSound(type) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                if (type === 'pop') {
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                } else if (type === 'celebrate') {
+                    // Celebration jingle
+                    const notes = [523.25, 659.25, 783.99]; // C, E, G
+                    notes.forEach((freq, i) => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.2, audioContext.currentTime + i * 0.15);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.15 + 0.3);
+                        osc.start(audioContext.currentTime + i * 0.15);
+                        osc.stop(audioContext.currentTime + i * 0.15 + 0.3);
+                    });
+                } else if (type === 'complete') {
+                    oscillator.frequency.value = 1000;
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }
+            } catch (e) {
+                // Silent fail if audio not supported
+            }
+        }
+
+        // Confetti effects
+        function launchConfetti() {
+            if (typeof confetti !== 'undefined') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function launchCelebrationConfetti() {
+            if (typeof confetti !== 'undefined') {
+                const duration = 3000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 3,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 }
+                    });
+                    confetti({
+                        particleCount: 3,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 }
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                })();
+            }
+        }
+
+        function calculateBadges() {
+            const newBadges = {};
+            const voteTimes = Object.keys(hasVoted).map(name => ({
+                name,
+                time: votingStartTimes[name] || Date.now()
+            })).sort((a, b) => a.time - b.time);
+            
+            // Early Bird - First to vote
+            if (voteTimes.length > 0) {
+                newBadges[voteTimes[0].name] = newBadges[voteTimes[0].name] || [];
+                newBadges[voteTimes[0].name].push('🐦 Early Bird');
+            }
+            
+            // Speed Demon - Fastest voter (under 30 seconds)
+            Object.entries(votingStartTimes).forEach(([name, time]) => {
+                const endTime = hasVoted[name + '_endTime'] || time;
+                const duration = (endTime - time) / 1000;
+                if (duration < 30) {
+                    newBadges[name] = newBadges[name] || [];
+                    newBadges[name].push('⚡ Speed Demon');
+                }
+            });
+            
+            // Completionist - Automatically earned by voting
+            Object.keys(hasVoted).forEach(name => {
+                if (name.indexOf('_endTime') === -1) {
+                    newBadges[name] = newBadges[name] || [];
+                    newBadges[name].push('✅ Completionist');
+                }
+            });
+            
+            return newBadges;
+        }
+
+        function calculateStatistics() {
+            const stats = {
+                totalVotes: 0,
+                mostPopularQuestion: null,
+                mostUnanimous: null,
+                closestRace: null,
+                selfVotes: {},
+                votingSpeed: {}
+            };
+            
+            // Total votes
+            Object.values(votes).forEach(questionVotes => {
+                Object.values(questionVotes).forEach(count => {
+                    stats.totalVotes += count;
+                });
+            });
+            
+            // Most popular question (most votes)
+            let maxVotes = 0;
+            questions.forEach(q => {
+                const totalForQuestion = Object.values(votes[q.id] || {}).reduce((sum, v) => sum + v, 0);
+                if (totalForQuestion > maxVotes) {
+                    maxVotes = totalForQuestion;
+                    stats.mostPopularQuestion = q;
+                }
+            });
+            
+            // Most unanimous (biggest vote difference)
+            let maxDiff = 0;
+            questions.forEach(q => {
+                const questionVotes = Object.values(votes[q.id] || {}).sort((a, b) => b - a);
+                if (questionVotes.length >= 2) {
+                    const diff = questionVotes[0] - questionVotes[1];
+                    if (diff > maxDiff) {
+                        maxDiff = diff;
+                        stats.mostUnanimous = q;
+                    }
+                }
+            });
+            
+            // Closest race (smallest vote difference)
+            let minDiff = Infinity;
+            questions.forEach(q => {
+                const questionVotes = Object.values(votes[q.id] || {}).sort((a, b) => b - a);
+                if (questionVotes.length >= 2 && questionVotes[0] !== questionVotes[1]) {
+                    const diff = questionVotes[0] - questionVotes[1];
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        stats.closestRace = q;
+                    }
+                }
+            });
+            
+            return stats;
         }
 
         async function initializeSupabase() {
@@ -617,25 +804,19 @@
                 
                 const { data, error: fetchError } = await supabase
                     .from('team_votes')
-                    .select('*')
+                    .select('votes, has_voted')
                     .order('id', { ascending: false })
-                    .limit(1);
+                    .limit(1)
+                    .maybeSingle();
 
                 addDebugLog(`Fetch complete. Error: ${fetchError ? fetchError.message : 'none'}`);
                 addDebugLog(`Data received: ${data ? 'yes' : 'no'}`);
 
                 if (fetchError) {
-                    // Check if it's just an empty table error
-                    if (fetchError.code === 'PGRST116') {
-                        addDebugLog('Table is empty, starting with fresh data');
-                        votes = {};
-                        hasVoted = {};
-                    } else {
-                        throw new Error(`Supabase error: ${fetchError.message} (Code: ${fetchError.code})`);
-                    }
-                } else if (data && data.length > 0) {
-                    votes = data[0].votes || {};
-                    hasVoted = data[0].has_voted || {};
+                    throw new Error(`Supabase error: ${fetchError.message} (Code: ${fetchError.code})`);
+                } else if (data) {
+                    votes = data.votes || {};
+                    hasVoted = data.has_voted || {};
                     addDebugLog('Data loaded successfully');
                 } else {
                     addDebugLog('No data found, starting fresh');
@@ -704,6 +885,13 @@
         }
 
         async function handleVote(member) {
+            playSound('pop');
+            
+            // Track voting start time for first question
+            if (currentQuestion === 0 && !votingStartTimes[playerName]) {
+                votingStartTimes[playerName] = Date.now();
+            }
+            
             const questionId = questions[currentQuestion].id;
             if (!votes[questionId]) votes[questionId] = {};
             if (!votes[questionId][member]) votes[questionId][member] = 0;
@@ -713,7 +901,11 @@
                 currentQuestion++;
                 render();
             } else {
+                // Track end time
+                hasVoted[playerName + '_endTime'] = Date.now();
                 hasVoted[playerName] = true;
+                
+                playSound('complete');
                 await saveData();
                 currentScreen = 'waiting';
                 render();
@@ -739,6 +931,85 @@
             } else if (password !== null) {
                 alert('Incorrect password. Access denied.');
             }
+        }
+
+        function StatisticsScreen() {
+            const stats = calculateStatistics();
+            const allBadges = calculateBadges();
+            const results = calculateResults();
+            
+            return `
+                <div class="results-container">
+                    <div class="results-header">
+                        <div class="trophy-icon">📊</div>
+                        <h1 class="results-title">Fun Statistics</h1>
+                        <p class="results-subtitle">Interesting insights from the votes</p>
+                    </div>
+                    
+                    <div class="results-list">
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">📈 Overall Stats</h3>
+                            <p style="color: #6b7280; margin-bottom: 8px;">Total votes cast: <strong>${stats.totalVotes}</strong></p>
+                            <p style="color: #6b7280; margin-bottom: 8px;">Team members voted: <strong>${Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1).length}</strong></p>
+                            <p style="color: #6b7280;">Questions answered: <strong>${questions.length}</strong></p>
+                        </div>
+                        
+                        ${stats.mostPopularQuestion ? `
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">🔥 Most Popular Question</h3>
+                            <p style="color: #6b7280; margin-bottom: 8px;">"${stats.mostPopularQuestion.question}"</p>
+                            <p style="color: #10b981; font-weight: 600;">${stats.mostPopularQuestion.award}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${stats.mostUnanimous ? `
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">🎯 Most Unanimous Decision</h3>
+                            <p style="color: #6b7280; margin-bottom: 8px;">"${stats.mostUnanimous.question}"</p>
+                            <p style="color: #10b981; font-weight: 600;">Everyone agreed on this one!</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${stats.closestRace ? `
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">⚔️ Closest Race</h3>
+                            <p style="color: #6b7280; margin-bottom: 8px;">"${stats.closestRace.question}"</p>
+                            <p style="color: #f59e0b; font-weight: 600;">It was neck and neck!</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${Object.keys(allBadges).length > 0 ? `
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">🏆 Badges Earned</h3>
+                            ${Object.entries(allBadges).map(([person, badgeList]) => `
+                                <div style="margin-bottom: 12px;">
+                                    <strong style="color: #111827;">${profilePics[person]} ${person}:</strong>
+                                    <span style="color: #6b7280;">${badgeList.join(', ')}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                        
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">🎭 Award Distribution</h3>
+                            ${Object.entries(results).map(([person, data]) => `
+                                <p style="color: #6b7280; margin-bottom: 8px;">
+                                    <strong>${profilePics[person]} ${person}:</strong> ${data.awards.length} award${data.awards.length !== 1 ? 's' : ''}
+                                </p>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button onclick="backToResults()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px;">Back to Results</button>
+                        <button onclick="voteAgain()" class="btn-secondary" style="width: auto; display: inline-block; padding: 16px 40px; margin-left: 16px;">Vote Again</button>
+                        
+                        <div class="footer">
+                            <p class="footer-text">Powered by No Boring Shops</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function calculateResults() {
@@ -889,6 +1160,7 @@
 
         function QuizScreen() {
             const question = questions[currentQuestion];
+            const categoryEmoji = question.category === 'fun' ? '😄 Fun' : question.category === 'skills' ? '💪 Skills' : '✨ Personality';
             
             return `
                 <div class="container">
@@ -898,18 +1170,25 @@
                                 <span class="quiz-label">Question ${currentQuestion + 1} of ${questions.length}</span>
                                 <span class="quiz-player">${playerName}</span>
                             </div>
+                            <div style="display: flex; justify-content: center; gap: 8px; margin: 16px 0;">
+                                ${questions.map((q, idx) => `
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${idx < currentQuestion ? '#10b981' : idx === currentQuestion ? '#111827' : '#e5e7eb'};"></div>
+                                `).join('')}
+                            </div>
                             <div class="progress-bar-bg">
                                 <div class="progress-bar-fill" style="width: ${((currentQuestion + 1) / questions.length) * 100}%; background: linear-gradient(90deg, #111827 0%, #374151 100%)"></div>
                             </div>
                         </div>
                         
                         <div class="question-card" style="background: ${question.gradient}">
+                            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; opacity: 0.9;">${categoryEmoji}</div>
                             <p class="question-text">${question.question}</p>
                         </div>
                         
                         <div class="options-grid">
                             ${teamMembers.map(member => `
                                 <button onclick="handleVote('${member}')" class="option-btn">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">${profilePics[member]}</div>
                                     ${member}
                                 </button>
                             `).join('')}
@@ -920,10 +1199,15 @@
         }
 
         function ResultsScreen() {
+            // Trigger confetti celebration
+            setTimeout(() => launchCelebrationConfetti(), 300);
+            playSound('celebrate');
+            
             const results = calculateResults();
             const sortedResults = Object.entries(results).sort(([, a], [, b]) => b.totalVotes - a.totalVotes);
-            const votedCount = Object.keys(hasVoted).length;
+            const votedCount = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1).length;
             const totalMembers = teamMembers.length;
+            const allBadges = calculateBadges();
             
             return `
                 <div class="results-container">
@@ -936,27 +1220,64 @@
                         </div>
                     </div>
                     
+                    ${sortedResults.length >= 3 ? `
+                    <div style="text-align: center; margin-bottom: 32px;">
+                        <div style="display: inline-flex; align-items: flex-end; gap: 16px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 48px; margin-bottom: 8px;">${profilePics[sortedResults[1][0]]}</div>
+                                <div style="font-size: 32px;">🥈</div>
+                                <p style="font-weight: 700; color: #111827; margin-top: 8px;">${sortedResults[1][0]}</p>
+                            </div>
+                            <div style="text-align: center; transform: scale(1.2);">
+                                <div style="font-size: 64px; margin-bottom: 8px;">${profilePics[sortedResults[0][0]]}</div>
+                                <div style="font-size: 48px;">🥇</div>
+                                <p style="font-weight: 700; color: #111827; margin-top: 8px;">${sortedResults[0][0]}</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 48px; margin-bottom: 8px;">${profilePics[sortedResults[2][0]]}</div>
+                                <div style="font-size: 32px;">🥉</div>
+                                <p style="font-weight: 700; color: #111827; margin-top: 8px;">${sortedResults[2][0]}</p>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
                     <div class="results-list">
-                        ${sortedResults.map(([person, data], index) => `
+                        ${sortedResults.map(([person, data], index) => {
+                            const personBadges = allBadges[person] || [];
+                            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                            
+                            return `
                             <div class="result-card">
                                 <div class="result-content">
                                     <div class="result-left">
                                         <div class="rank-badge" style="background: ${data.awards[0].gradient}">
-                                            <span class="rank-number">#${index + 1}</span>
+                                            <span class="rank-number">${medal || `#${index + 1}`}</span>
                                         </div>
+                                        <div style="font-size: 48px; margin-right: 16px;">${profilePics[person]}</div>
                                         <div class="result-info">
-                                            <h3>${person}</h3>
-                                            ${data.awards.map(award => `<p>${award.award}</p>`).join('')}
+                                            <h3>${person} ${data.awards.length > 1 ? '⭐' : ''}</h3>
+                                            ${data.awards.map(award => {
+                                                const question = questions.find(q => q.id === award.questionId);
+                                                const categoryEmoji = question.category === 'fun' ? '😄' : question.category === 'skills' ? '💪' : '✨';
+                                                return `<p>${award.award} <span style="font-size: 0.8em; color: #9ca3af;">${categoryEmoji}</span></p>`;
+                                            }).join('')}
+                                            ${personBadges.length > 0 ? `
+                                                <p style="font-size: 0.9em; color: #6b7280; margin-top: 8px;">
+                                                    ${personBadges.join(' ')}
+                                                </p>
+                                            ` : ''}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        `).join('')}
+                        `}).join('')}
                     </div>
                     
                     <div class="action-buttons">
-                        <button onclick="voteAgain()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px;">Vote Again</button>
-                        <button onclick="promptResetPassword()" class="btn-danger">Reset All Votes</button>
+                        <button onclick="viewStatistics()" class="btn-secondary" style="width: auto; display: inline-block; padding: 16px 40px;">View Statistics 📊</button>
+                        <button onclick="voteAgain()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px; margin-left: 16px;">Vote Again</button>
+                        <button onclick="promptResetPassword()" class="btn-danger" style="margin-top: 16px;">Reset All Votes</button>
                         
                         <div class="footer">
                             <p class="footer-text">Powered by No Boring Shops</p>
@@ -967,12 +1288,17 @@
         }
 
         function WaitingScreen() {
-            const votedCount = Object.keys(hasVoted).length;
+            const votedCount = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1).length;
             const totalMembers = teamMembers.length;
             const minRequired = 5;
             const allVoted = votedCount >= minRequired;
-            const peopleWhoVoted = Object.keys(hasVoted);
+            const peopleWhoVoted = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1);
             const peopleWaiting = teamMembers.filter(member => !hasVoted[member]);
+            
+            // Trigger confetti if just unlocked
+            if (allVoted) {
+                setTimeout(() => launchConfetti(), 500);
+            }
             
             return `
                 <div class="container">
@@ -994,12 +1320,12 @@
                                 <span class="progress-count">${votedCount}/${totalMembers} (minimum ${minRequired})</span>
                             </div>
                             <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="width: ${(votedCount / minRequired) * 100}%"></div>
+                                <div class="progress-bar-fill" style="width: ${Math.min((votedCount / minRequired) * 100, 100)}%"></div>
                             </div>
                             <p class="progress-text">
                                 ${allVoted 
                                     ? `🎉 ${votedCount} team members have voted! Click below to see the results.` 
-                                    : `Need ${minRequired - votedCount} more vote${minRequired - votedCount !== 1 ? 's' : ''}. Waiting for: ${peopleWaiting.join(', ')}`
+                                    : `Need ${minRequired - votedCount} more vote${minRequired - votedCount !== 1 ? 's' : ''}. ${peopleWaiting.length > 0 ? `Waiting for: ${peopleWaiting.join(', ')}` : ''}`
                                 }
                             </p>
                         </div>
@@ -1089,6 +1415,8 @@
                 app.innerHTML = WaitingScreen();
             } else if (currentScreen === 'results') {
                 app.innerHTML = ResultsScreen();
+            } else if (currentScreen === 'statistics') {
+                app.innerHTML = StatisticsScreen();
             }
         }
 
@@ -1099,6 +1427,16 @@
         }
 
         function viewResults() {
+            currentScreen = 'results';
+            render();
+        }
+
+        function viewStatistics() {
+            currentScreen = 'statistics';
+            render();
+        }
+
+        function backToResults() {
             currentScreen = 'results';
             render();
         }
@@ -1117,6 +1455,8 @@
         window.promptResetPassword = promptResetPassword;
         window.checkProgress = checkProgress;
         window.viewResults = viewResults;
+        window.viewStatistics = viewStatistics;
+        window.backToResults = backToResults;
 
         // Initialize app
         addDebugLog('App starting...');
