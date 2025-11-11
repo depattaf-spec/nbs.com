@@ -468,6 +468,18 @@
             text-align: center;
         }
         
+        .action-buttons .btn-primary,
+        .action-buttons .btn-secondary {
+            width: auto;
+            display: inline-block;
+            padding: 16px 40px;
+            margin: 8px;
+        }
+        
+        .action-buttons .btn-danger {
+            margin-top: 8px;
+        }
+        
         .loading {
             text-align: center;
             padding: 40px;
@@ -520,6 +532,10 @@
                 font-size: 32px;
             }
             
+            .results-subtitle {
+                font-size: 16px;
+            }
+            
             .options-grid {
                 grid-template-columns: 1fr;
             }
@@ -531,12 +547,72 @@
             
             .result-left {
                 flex-direction: column;
+                align-items: center;
             }
             
-            .btn-danger {
-                margin-left: 0;
-                margin-top: 16px;
+            .result-info {
+                text-align: center;
+            }
+            
+            .result-info h3 {
+                font-size: 20px;
+            }
+            
+            .result-info p {
+                font-size: 16px;
+            }
+            
+            /* Podium mobile adjustments */
+            .podium-wrapper {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 24px !important;
+            }
+            
+            .podium-winner {
+                transform: none !important;
+                order: -1;
+            }
+            
+            .podium-item {
+                margin: 0 !important;
+            }
+            
+            /* Action buttons mobile */
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
                 width: 100%;
+                padding: 0 16px;
+            }
+            
+            .action-buttons .btn-primary,
+            .action-buttons .btn-secondary,
+            .action-buttons .btn-danger {
+                width: 100% !important;
+                margin: 0 !important;
+                display: block !important;
+            }
+            
+            /* Results container padding */
+            .results-container {
+                padding: 24px 16px;
+            }
+            
+            /* Result cards */
+            .result-card {
+                padding: 20px 16px;
+            }
+            
+            .rank-badge {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .rank-number {
+                font-size: 18px;
             }
         }
     </style>
@@ -1001,8 +1077,8 @@
                     </div>
                     
                     <div class="action-buttons">
-                        <button onclick="backToResults()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px;">Back to Results</button>
-                        <button onclick="voteAgain()" class="btn-secondary" style="width: auto; display: inline-block; padding: 16px 40px; margin-left: 16px;">Vote Again</button>
+                        <button onclick="backToResults()" class="btn-primary">Back to Results</button>
+                        <button onclick="voteAgain()" class="btn-secondary">Vote Again</button>
                         
                         <div class="footer">
                             <p class="footer-text">Powered by No Boring Shops</p>
@@ -1221,19 +1297,19 @@
                     </div>
                     
                     ${sortedResults.length >= 3 ? `
-                    <div style="text-align: center; margin-bottom: 32px;">
-                        <div style="display: inline-flex; align-items: flex-end; gap: 16px;">
-                            <div style="text-align: center;">
+                    <div class="podium-container" style="text-align: center; margin-bottom: 32px;">
+                        <div class="podium-wrapper" style="display: inline-flex; align-items: flex-end; gap: 16px;">
+                            <div class="podium-item" style="text-align: center;">
                                 <div style="font-size: 48px; margin-bottom: 8px;">${profilePics[sortedResults[1][0]]}</div>
                                 <div style="font-size: 32px;">🥈</div>
                                 <p style="font-weight: 700; color: #111827; margin-top: 8px;">${sortedResults[1][0]}</p>
                             </div>
-                            <div style="text-align: center; transform: scale(1.2);">
+                            <div class="podium-item podium-winner" style="text-align: center; transform: scale(1.2);">
                                 <div style="font-size: 64px; margin-bottom: 8px;">${profilePics[sortedResults[0][0]]}</div>
                                 <div style="font-size: 48px;">🥇</div>
                                 <p style="font-weight: 700; color: #111827; margin-top: 8px;">${sortedResults[0][0]}</p>
                             </div>
-                            <div style="text-align: center;">
+                            <div class="podium-item" style="text-align: center;">
                                 <div style="font-size: 48px; margin-bottom: 8px;">${profilePics[sortedResults[2][0]]}</div>
                                 <div style="font-size: 32px;">🥉</div>
                                 <p style="font-weight: 700; color: #111827; margin-top: 8px;">${sortedResults[2][0]}</p>
@@ -1275,9 +1351,9 @@
                     </div>
                     
                     <div class="action-buttons">
-                        <button onclick="viewStatistics()" class="btn-secondary" style="width: auto; display: inline-block; padding: 16px 40px;">View Statistics 📊</button>
-                        <button onclick="voteAgain()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px; margin-left: 16px;">Vote Again</button>
-                        <button onclick="promptResetPassword()" class="btn-danger" style="margin-top: 16px;">Reset All Votes</button>
+                        <button onclick="viewStatistics()" class="btn-secondary">View Statistics 📊</button>
+                        <button onclick="voteAgain()" class="btn-primary">Vote Again</button>
+                        <button onclick="promptResetPassword()" class="btn-danger">Reset All Votes</button>
                         
                         <div class="footer">
                             <p class="footer-text">Powered by No Boring Shops</p>
