@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBS Team Ice Breaker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e7e5e4 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .card-wide {
+            max-width: 800px;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .logo {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        
+        .logo-box {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #111827 0%, #374151 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: rotate(3deg);
+        }
+        
+        .logo-text {
+            color: white;
+            font-size: 24px;
+            font-weight: 900;
+            transform: rotate(-3deg);
+        }
+        
+        .logo-dot {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 24px;
+            height: 24px;
+            background: #2563eb;
+            border-radius: 50%;
+        }
+        
+        h1 {
+            font-size: 36px;
+            font-weight: 900;
+            color: #111827;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .progress-box {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .progress-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e3a8a;
+            text-transform: uppercase;
+        }
+        
+        .progress-count {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #bfdbfe;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            font-size: 11px;
+            color: #1e40af;
+            margin-top: 8px;
+        }
+        
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #f9fafb;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        select:hover {
+            border-color: #d1d5db;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .voted-notice {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #16a34a;
+            font-weight: 500;
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #111827;
+            color: white;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #1f2937;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary:disabled {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #111827;
+            border: 2px solid #111827;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 16px;
+        }
+        
+        .btn-secondary:hover {
+            background: #111827;
+            color: white;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+            margin-left: 16px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .footer-text {
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .quiz-header {
+            margin-bottom: 32px;
+        }
+        
+        .quiz-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .quiz-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .quiz-player {
+            font-size: 12px;
+            font-weight: 700;
+            color: #111827;
+            background: #f3f4f6;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+        
+        .question-card {
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .question-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            line-height: 1.5;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .option-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+        
+        .option-btn:hover {
+            background: #f9fafb;
+            border-color: #111827;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .results-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 48px 20px;
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .trophy-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #111827 0%, #374151 100%);
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            transform: rotate(3deg);
+            margin-bottom: 24px;
+            font-size: 40px;
+        }
+        
+        .results-title {
+            font-size: 48px;
+            font-weight: 900;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        
+        .results-subtitle {
+            font-size: 20px;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .vote-count-box {
+            display: inline-block;
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            padding: 12px 24px;
+            border-radius: 12px;
+        }
+        
+        .vote-count-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        
+        .results-list {
+            margin-bottom: 48px;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+        
+        .result-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+        }
+        
+        .result-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .result-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .rank-badge {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        
+        .rank-number {
+            font-size: 20px;
+            font-weight: 900;
+            color: white;
+        }
+        
+        .result-info h3 {
+            font-size: 24px;
+            font-weight: 900;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        
+        .result-info p {
+            font-size: 18px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .vote-display {
+            background: #f9fafb;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: right;
+        }
+        
+        .vote-number {
+            font-size: 28px;
+            font-weight: 900;
+            color: #111827;
+        }
+        
+        .vote-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .action-buttons {
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #111827;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 28px;
+            }
+            
+            .results-title {
+                font-size: 32px;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .result-left {
+                flex-direction: column;
+            }
+            
+            .btn-danger {
+                margin-left: 0;
+                margin-top: 16px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="card">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="color: #6b7280; font-weight: 500;">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://zxmljycgcxvpliqkfzbd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4bWxqeWNnY3h2cGxpcWtmemJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjMzOTMsImV4cCI6MjA3ODQzOTM5M30.d84DHtVKYeNq1yFNQ86mG4t5jbRuB9hR27Md4uqFZe8';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const teamMembers = ['Andreas', 'Raquel', 'Sara', 'Ines', 'Nicole', 'Federico'];
+        
+        const questions = [
+            { id: 1, question: "Who is most likely to accidentally start a fire while cooking?", award: "🔥 The Fire Starter", gradient: "linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)" },
+            { id: 2, question: "If stranded on a desert island, who would become the leader?", award: "🏝️ The Natural Leader", gradient: "linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)" },
+            { id: 3, question: "Who would survive the longest in a zombie apocalypse?", award: "🧟 The Survival Expert", gradient: "linear-gradient(135deg, #059669 0%, #14b8a6 100%)" },
+            { id: 4, question: "Who would be brave enough to do karaoke without any drinks first?", award: "🎤 The Fearless Performer", gradient: "linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)" },
+            { id: 5, question: "Who has the worst sense of direction and gets lost easily?", award: "🗺️ The Adventurous Explorer", gradient: "linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)" },
+            { id: 6, question: "Who can't function without coffee in the morning?", award: "☕ The Coffee Connoisseur", gradient: "linear-gradient(135deg, #b45309 0%, #ca8a04 100%)" },
+            { id: 7, question: "Who would accidentally reply-all to an email and cause chaos?", award: "😂 The Chaos Creator", gradient: "linear-gradient(135deg, #db2777 0%, #f43f5e 100%)" },
+            { id: 8, question: "Who is the most creative person on the team?", award: "🎨 The Creative Genius", gradient: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)" },
+            { id: 9, question: "Who would eat pineapple on pizza without complaining?", award: "🍕 The Bold Taste Tester", gradient: "linear-gradient(135deg, #dc2626 0%, #fb923c 100%)" },
+            { id: 10, question: "Who is most likely to organize a spontaneous team outing?", award: "🎉 The Party Starter", gradient: "linear-gradient(135deg, #c026d3 0%, #ec4899 100%)" }
+        ];
+
+        let currentScreen = 'welcome';
+        let playerName = '';
+        let currentQuestion = 0;
+        let votes = {};
+        let hasVoted = {};
+        let loading = true;
+        let error = null;
+
+        async function loadData() {
+            try {
+                console.log('Starting to load data from Supabase...');
+                console.log('Supabase URL:', SUPABASE_URL);
+                
+                const { data, error: fetchError } = await supabase
+                    .from('team_votes')
+                    .select('*')
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                console.log('Supabase response - data:', data);
+                console.log('Supabase response - error:', fetchError);
+
+                if (fetchError && fetchError.code !== 'PGRST116') {
+                    console.error('Supabase error code:', fetchError.code);
+                    console.error('Supabase error message:', fetchError.message);
+                    throw new Error(fetchError.message || 'Failed to load data');
+                }
+
+                if (data) {
+                    votes = data.votes || {};
+                    hasVoted = data.has_voted || {};
+                    console.log('Successfully loaded votes:', votes);
+                }
+                
+                console.log('Load complete, no errors');
+            } catch (err) {
+                console.error('Error loading data:', err);
+                console.error('Error message:', err.message);
+                error = `Unable to connect to database: ${err.message}`;
+            } finally {
+                loading = false;
+                console.log('Rendering screen...');
+                render();
+            }
+        }
+
+        async function saveData() {
+            try {
+                const { data: existing } = await supabase
+                    .from('team_votes')
+                    .select('id')
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (existing) {
+                    const { error: updateError } = await supabase
+                        .from('team_votes')
+                        .update({ 
+                            votes: votes, 
+                            has_voted: hasVoted,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', existing.id);
+                    
+                    if (updateError) throw updateError;
+                } else {
+                    const { error: insertError } = await supabase
+                        .from('team_votes')
+                        .insert({ votes: votes, has_voted: hasVoted });
+                    
+                    if (insertError) throw insertError;
+                }
+            } catch (err) {
+                console.error('Error saving data:', err);
+                alert('Failed to save votes. Please try again.');
+            }
+        }
+
+        async function handleVote(member) {
+            const questionId = questions[currentQuestion].id;
+            if (!votes[questionId]) votes[questionId] = {};
+            if (!votes[questionId][member]) votes[questionId][member] = 0;
+            votes[questionId][member]++;
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                render();
+            } else {
+                hasVoted[playerName] = true;
+                await saveData();
+                currentScreen = 'results';
+                render();
+            }
+        }
+
+        async function resetAllVotes() {
+            if (confirm('Are you sure you want to reset all votes? This cannot be undone.')) {
+                votes = {};
+                hasVoted = {};
+                await saveData();
+                currentScreen = 'welcome';
+                playerName = '';
+                currentQuestion = 0;
+                render();
+            }
+        }
+
+        function calculateResults() {
+            const personAwards = {};
+            const awardsGiven = new Set();
+
+            const questionsByVotes = questions.map(q => ({
+                ...q,
+                totalVotes: Object.values(votes[q.id] || {}).reduce((sum, v) => sum + v, 0)
+            })).sort((a, b) => b.totalVotes - a.totalVotes);
+
+            questionsByVotes.forEach((question) => {
+                const questionVotes = votes[question.id] || {};
+                const sortedVoters = Object.entries(questionVotes)
+                    .sort(([, a], [, b]) => b - a)
+                    .filter(([person]) => !personAwards[person]);
+                
+                if (sortedVoters.length > 0 && Object.keys(personAwards).length < teamMembers.length) {
+                    const [winner, voteCount] = sortedVoters[0];
+                    personAwards[winner] = {
+                        award: question.award,
+                        votes: voteCount,
+                        questionId: question.id,
+                        gradient: question.gradient
+                    };
+                    awardsGiven.add(question.id);
+                }
+            });
+
+            const peopleWithoutAwards = teamMembers.filter(person => !personAwards[person]);
+            const unusedAwards = questions.filter(q => !awardsGiven.has(q.id));
+            
+            peopleWithoutAwards.forEach((person, index) => {
+                if (index < unusedAwards.length) {
+                    const award = unusedAwards[index];
+                    const voteCount = votes[award.id]?.[person] || 0;
+                    personAwards[person] = {
+                        award: award.award,
+                        votes: voteCount,
+                        questionId: award.id,
+                        gradient: award.gradient
+                    };
+                }
+            });
+
+            return personAwards;
+        }
+
+        function WelcomeScreen() {
+            const votedCount = Object.keys(hasVoted).length;
+            const totalMembers = teamMembers.length;
+            
+            return `
+                <div class="container">
+                    <div class="card">
+                        ${error ? `<div class="error-message">${error}</div>` : ''}
+                        <div class="logo-container">
+                            <div class="logo">
+                                <div class="logo-box">
+                                    <span class="logo-text">NBS</span>
+                                </div>
+                                <div class="logo-dot"></div>
+                            </div>
+                            <h1>Team Ice Breaker</h1>
+                            <p class="subtitle">Discover what makes your team unique</p>
+                        </div>
+
+                        <div class="progress-box">
+                            <div class="progress-header">
+                                <span class="progress-label">Team Progress</span>
+                                <span class="progress-count">${votedCount}/${totalMembers}</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${(votedCount / totalMembers) * 100}%"></div>
+                            </div>
+                            <p class="progress-text">
+                                ${votedCount === totalMembers ? '🎉 Everyone has voted!' : `${totalMembers - votedCount} team member${totalMembers - votedCount !== 1 ? 's' : ''} left to vote`}
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 32px;">
+                            <label>Select Your Name</label>
+                            <select id="playerSelect">
+                                <option value="">Choose your name...</option>
+                                ${teamMembers.map(member => `<option value="${member}">${member} ${hasVoted[member] ? '✓' : ''}</option>`).join('')}
+                            </select>
+                            ${playerName && hasVoted[playerName] ? '<p class="voted-notice">✓ You\'ve already voted! You can vote again to update your answers.</p>' : ''}
+                        </div>
+                        
+                        <button id="startBtn" class="btn-primary" disabled>Start Quiz</button>
+                        <button id="resultsBtn" class="btn-secondary">View Results</button>
+                        
+                        <div class="footer">
+                            <p class="footer-text">Powered by No Boring Shops</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function QuizScreen() {
+            const question = questions[currentQuestion];
+            
+            return `
+                <div class="container">
+                    <div class="card card-wide">
+                        <div class="quiz-header">
+                            <div class="quiz-progress">
+                                <span class="quiz-label">Question ${currentQuestion + 1} of ${questions.length}</span>
+                                <span class="quiz-player">${playerName}</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${((currentQuestion + 1) / questions.length) * 100}%; background: linear-gradient(90deg, #111827 0%, #374151 100%)"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="question-card" style="background: ${question.gradient}">
+                            <p class="question-text">${question.question}</p>
+                        </div>
+                        
+                        <div class="options-grid">
+                            ${teamMembers.map(member => `
+                                <button onclick="handleVote('${member}')" class="option-btn">
+                                    ${member}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function ResultsScreen() {
+            const results = calculateResults();
+            const sortedResults = Object.entries(results).sort(([, a], [, b]) => b.votes - a.votes);
+            const votedCount = Object.keys(hasVoted).length;
+            const totalMembers = teamMembers.length;
+            
+            return `
+                <div class="results-container">
+                    <div class="results-header">
+                        <div class="trophy-icon">🏆</div>
+                        <h1 class="results-title">The Results Are In</h1>
+                        <p class="results-subtitle">Everyone's a winner! Here are your team superlatives</p>
+                        <div class="vote-count-box">
+                            <p class="vote-count-text">${votedCount} of ${totalMembers} team members have voted</p>
+                        </div>
+                    </div>
+                    
+                    <div class="results-list">
+                        ${sortedResults.map(([person, data], index) => `
+                            <div class="result-card">
+                                <div class="result-content">
+                                    <div class="result-left">
+                                        <div class="rank-badge" style="background: ${data.gradient}">
+                                            <span class="rank-number">#${index + 1}</span>
+                                        </div>
+                                        <div class="result-info">
+                                            <h3>${person}</h3>
+                                            <p>${data.award}</p>
+                                        </div>
+                                    </div>
+                                    <div class="vote-display">
+                                        <div class="vote-number">${data.votes}</div>
+                                        <div class="vote-label">votes</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button onclick="voteAgain()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px;">Vote Again</button>
+                        <button onclick="resetAllVotes()" class="btn-danger">Reset All Votes</button>
+                        
+                        <div class="footer">
+                            <p class="footer-text">Powered by No Boring Shops
