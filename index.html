@@ -494,6 +494,19 @@
             font-weight: 500;
         }
         
+        .debug-info {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 12px;
+            font-family: monospace;
+            color: #374151;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -545,7 +558,7 @@
         const SUPABASE_URL = 'https://zxmljycgcxvpliqkfzbd.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4bWxqeWNnY3h2cGxpcWtmemJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjMzOTMsImV4cCI6MjA3ODQzOTM5M30.d84DHtVKYeNq1yFNQ86mG4t5jbRuB9hR27Md4uqFZe8';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase;
         
         const teamMembers = ['Andreas', 'Raquel', 'Sara', 'Ines', 'Nicole', 'Federico'];
         
@@ -569,56 +582,97 @@
         let hasVoted = {};
         let loading = true;
         let error = null;
+        let debugLog = [];
+
+        function addDebugLog(message) {
+            const timestamp = new Date().toISOString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            console.log(message);
+        }
+
+        async function initializeSupabase() {
+            try {
+                addDebugLog('Initializing Supabase client...');
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                addDebugLog('Supabase client initialized successfully');
+                return true;
+            } catch (err) {
+                addDebugLog(`Error initializing Supabase: ${err.message}`);
+                return false;
+            }
+        }
 
         async function loadData() {
             try {
-                console.log('Starting to load data from Supabase...');
-                console.log('Supabase URL:', SUPABASE_URL);
+                addDebugLog('Starting data load...');
+                
+                if (!supabase) {
+                    const initialized = await initializeSupabase();
+                    if (!initialized) {
+                        throw new Error('Failed to initialize Supabase client');
+                    }
+                }
+
+                addDebugLog('Attempting to fetch data from team_votes table...');
                 
                 const { data, error: fetchError } = await supabase
                     .from('team_votes')
                     .select('*')
                     .order('id', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .limit(1);
 
-                console.log('Supabase response - data:', data);
-                console.log('Supabase response - error:', fetchError);
+                addDebugLog(`Fetch complete. Error: ${fetchError ? fetchError.message : 'none'}`);
+                addDebugLog(`Data received: ${data ? 'yes' : 'no'}`);
 
-                if (fetchError && fetchError.code !== 'PGRST116') {
-                    console.error('Supabase error code:', fetchError.code);
-                    console.error('Supabase error message:', fetchError.message);
-                    throw new Error(fetchError.message || 'Failed to load data');
-                }
-
-                if (data) {
-                    votes = data.votes || {};
-                    hasVoted = data.has_voted || {};
-                    console.log('Successfully loaded votes:', votes);
+                if (fetchError) {
+                    // Check if it's just an empty table error
+                    if (fetchError.code === 'PGRST116') {
+                        addDebugLog('Table is empty, starting with fresh data');
+                        votes = {};
+                        hasVoted = {};
+                    } else {
+                        throw new Error(`Supabase error: ${fetchError.message} (Code: ${fetchError.code})`);
+                    }
+                } else if (data && data.length > 0) {
+                    votes = data[0].votes || {};
+                    hasVoted = data[0].has_voted || {};
+                    addDebugLog('Data loaded successfully');
+                } else {
+                    addDebugLog('No data found, starting fresh');
+                    votes = {};
+                    hasVoted = {};
                 }
                 
-                console.log('Load complete, no errors');
+                error = null;
             } catch (err) {
-                console.error('Error loading data:', err);
-                console.error('Error message:', err.message);
-                error = `Unable to connect to database: ${err.message}`;
+                addDebugLog(`Error in loadData: ${err.message}`);
+                error = `Database connection error: ${err.message}`;
+                // Continue with empty data instead of blocking
+                votes = {};
+                hasVoted = {};
             } finally {
                 loading = false;
-                console.log('Rendering screen...');
+                addDebugLog('Load complete, rendering...');
                 render();
             }
         }
 
         async function saveData() {
             try {
-                const { data: existing } = await supabase
+                addDebugLog('Attempting to save data...');
+                
+                const { data: existing, error: selectError } = await supabase
                     .from('team_votes')
                     .select('id')
                     .order('id', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .limit(1);
 
-                if (existing) {
+                if (selectError) {
+                    throw new Error(`Select error: ${selectError.message}`);
+                }
+
+                if (existing && existing.length > 0) {
+                    addDebugLog(`Updating existing record with id: ${existing[0].id}`);
                     const { error: updateError } = await supabase
                         .from('team_votes')
                         .update({ 
@@ -626,19 +680,26 @@
                             has_voted: hasVoted,
                             updated_at: new Date().toISOString()
                         })
-                        .eq('id', existing.id);
+                        .eq('id', existing[0].id);
                     
-                    if (updateError) throw updateError;
+                    if (updateError) throw new Error(`Update error: ${updateError.message}`);
+                    addDebugLog('Data updated successfully');
                 } else {
+                    addDebugLog('Creating new record...');
                     const { error: insertError } = await supabase
                         .from('team_votes')
-                        .insert({ votes: votes, has_voted: hasVoted });
+                        .insert({ 
+                            votes: votes, 
+                            has_voted: hasVoted,
+                            updated_at: new Date().toISOString()
+                        });
                     
-                    if (insertError) throw insertError;
+                    if (insertError) throw new Error(`Insert error: ${insertError.message}`);
+                    addDebugLog('Data inserted successfully');
                 }
             } catch (err) {
-                console.error('Error saving data:', err);
-                alert('Failed to save votes. Please try again.');
+                addDebugLog(`Error saving data: ${err.message}`);
+                alert(`Failed to save votes: ${err.message}\n\nPlease check your Supabase configuration.`);
             }
         }
 
@@ -724,7 +785,17 @@
             return `
                 <div class="container">
                     <div class="card">
-                        ${error ? `<div class="error-message">${error}</div>` : ''}
+                        ${error ? `
+                            <div class="error-message">
+                                ${error}
+                                <details style="margin-top: 12px; text-align: left;">
+                                    <summary style="cursor: pointer; font-weight: 600;">Debug Info</summary>
+                                    <div class="debug-info">
+                                        ${debugLog.join('\n')}
+                                    </div>
+                                </details>
+                            </div>
+                        ` : ''}
                         <div class="logo-container">
                             <div class="logo">
                                 <div class="logo-box">
@@ -845,4 +916,75 @@
                         <button onclick="resetAllVotes()" class="btn-danger">Reset All Votes</button>
                         
                         <div class="footer">
-                            <p class="footer-text">Powered by No Boring Shops
+                            <p class="footer-text">Powered by No Boring Shops</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (loading) {
+                app.innerHTML = `
+                    <div class="container">
+                        <div class="card">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p style="color: #6b7280; font-weight: 500;">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentScreen === 'welcome') {
+                app.innerHTML = WelcomeScreen();
+                
+                const select = document.getElementById('playerSelect');
+                const startBtn = document.getElementById('startBtn');
+                const resultsBtn = document.getElementById('resultsBtn');
+                
+                select.addEventListener('change', (e) => {
+                    playerName = e.target.value;
+                    startBtn.disabled = !playerName;
+                    render();
+                });
+                
+                startBtn.addEventListener('click', () => {
+                    currentScreen = 'quiz';
+                    currentQuestion = 0;
+                    render();
+                });
+                
+                resultsBtn.addEventListener('click', () => {
+                    currentScreen = 'results';
+                    render();
+                });
+            } else if (currentScreen === 'quiz') {
+                app.innerHTML = QuizScreen();
+            } else if (currentScreen === 'results') {
+                app.innerHTML = ResultsScreen();
+            }
+        }
+
+        function voteAgain() {
+            currentScreen = 'welcome';
+            playerName = '';
+            currentQuestion = 0;
+            render();
+        }
+
+        // Make functions available globally
+        window.handleVote = handleVote;
+        window.voteAgain = voteAgain;
+        window.resetAllVotes = resetAllVotes;
+
+        // Initialize app
+        addDebugLog('App starting...');
+        loadData();
+    </script>
+</body>
+</html>
