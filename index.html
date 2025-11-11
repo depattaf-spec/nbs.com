@@ -732,6 +732,15 @@
             }
         }
 
+        function promptResetPassword() {
+            const password = prompt('Enter password to reset all votes:');
+            if (password === 'fede98') {
+                resetAllVotes();
+            } else if (password !== null) {
+                alert('Incorrect password. Access denied.');
+            }
+        }
+
         function calculateResults() {
             const personAwards = {};
             const awardsGiven = new Set();
@@ -902,10 +911,6 @@
                                             <p>${data.award}</p>
                                         </div>
                                     </div>
-                                    <div class="vote-display">
-                                        <div class="vote-number">${data.votes}</div>
-                                        <div class="vote-label">votes</div>
-                                    </div>
                                 </div>
                             </div>
                         `).join('')}
@@ -913,7 +918,7 @@
                     
                     <div class="action-buttons">
                         <button onclick="voteAgain()" class="btn-primary" style="width: auto; display: inline-block; padding: 16px 40px;">Vote Again</button>
-                        <button onclick="resetAllVotes()" class="btn-danger">Reset All Votes</button>
+                        <button onclick="promptResetPassword()" class="btn-danger">Reset All Votes</button>
                         
                         <div class="footer">
                             <p class="footer-text">Powered by No Boring Shops</p>
@@ -1000,6 +1005,7 @@
         window.handleVote = handleVote;
         window.voteAgain = voteAgain;
         window.resetAllVotes = resetAllVotes;
+        window.promptResetPassword = promptResetPassword;
 
         // Initialize app
         addDebugLog('App starting...');
