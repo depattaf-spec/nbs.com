@@ -715,7 +715,7 @@
             } else {
                 hasVoted[playerName] = true;
                 await saveData();
-                currentScreen = 'results';
+                currentScreen = 'waiting';
                 render();
             }
         }
@@ -928,6 +928,58 @@
             `;
         }
 
+        function WaitingScreen() {
+            const votedCount = Object.keys(hasVoted).length;
+            const totalMembers = teamMembers.length;
+            const minRequired = 5;
+            const allVoted = votedCount >= minRequired;
+            const peopleWhoVoted = Object.keys(hasVoted);
+            const peopleWaiting = teamMembers.filter(member => !hasVoted[member]);
+            
+            return `
+                <div class="container">
+                    <div class="card">
+                        <div class="logo-container">
+                            <div class="logo">
+                                <div class="logo-box">
+                                    <span class="logo-text">NBS</span>
+                                </div>
+                                <div class="logo-dot"></div>
+                            </div>
+                            <h1>${allVoted ? '🎉 Ready to View Results!' : '✓ Thanks for Voting!'}</h1>
+                            <p class="subtitle">${allVoted ? 'Enough votes collected to see results' : 'Waiting for others to complete the quiz'}</p>
+                        </div>
+
+                        <div class="progress-box">
+                            <div class="progress-header">
+                                <span class="progress-label">Team Progress</span>
+                                <span class="progress-count">${votedCount}/${totalMembers} (minimum ${minRequired})</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${(votedCount / minRequired) * 100}%"></div>
+                            </div>
+                            <p class="progress-text">
+                                ${allVoted 
+                                    ? `🎉 ${votedCount} team members have voted! Click below to see the results.` 
+                                    : `Need ${minRequired - votedCount} more vote${minRequired - votedCount !== 1 ? 's' : ''}. Waiting for: ${peopleWaiting.join(', ')}`
+                                }
+                            </p>
+                        </div>
+
+                        ${allVoted ? `
+                            <button onclick="viewResults()" class="btn-primary">View Results</button>
+                        ` : `
+                            <button onclick="checkProgress()" class="btn-secondary">Refresh Progress</button>
+                        `}
+                        
+                        <div class="footer">
+                            <p class="footer-text">Powered by No Boring Shops</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function render() {
             const app = document.getElementById('app');
             
@@ -984,14 +1036,33 @@
                 });
                 
                 resultsBtn.addEventListener('click', () => {
-                    currentScreen = 'results';
+                    const votedCount = Object.keys(hasVoted).length;
+                    const minRequired = 5;
+                    if (votedCount >= minRequired) {
+                        currentScreen = 'results';
+                    } else {
+                        currentScreen = 'waiting';
+                    }
                     render();
                 });
             } else if (currentScreen === 'quiz') {
                 app.innerHTML = QuizScreen();
+            } else if (currentScreen === 'waiting') {
+                app.innerHTML = WaitingScreen();
             } else if (currentScreen === 'results') {
                 app.innerHTML = ResultsScreen();
             }
+        }
+
+        async function checkProgress() {
+            loading = true;
+            render();
+            await loadData();
+        }
+
+        function viewResults() {
+            currentScreen = 'results';
+            render();
         }
 
         function voteAgain() {
@@ -1006,6 +1077,8 @@
         window.voteAgain = voteAgain;
         window.resetAllVotes = resetAllVotes;
         window.promptResetPassword = promptResetPassword;
+        window.checkProgress = checkProgress;
+        window.viewResults = viewResults;
 
         // Initialize app
         addDebugLog('App starting...');
