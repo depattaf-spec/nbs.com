@@ -562,21 +562,43 @@
                 font-size: 16px;
             }
             
-            /* Podium mobile adjustments */
+            /* Podium mobile adjustments - keep horizontal but smaller */
             .podium-wrapper {
                 display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                gap: 24px !important;
+                flex-direction: row !important;
+                align-items: flex-end !important;
+                gap: 8px !important;
+                justify-content: center !important;
             }
             
             .podium-winner {
-                transform: none !important;
-                order: -1;
+                transform: scale(1.1) !important;
             }
             
             .podium-item {
                 margin: 0 !important;
+            }
+            
+            .podium-item > div:first-child {
+                font-size: 32px !important;
+                margin-bottom: 4px !important;
+            }
+            
+            .podium-winner > div:first-child {
+                font-size: 40px !important;
+            }
+            
+            .podium-item > div:nth-child(2) {
+                font-size: 20px !important;
+            }
+            
+            .podium-winner > div:nth-child(2) {
+                font-size: 28px !important;
+            }
+            
+            .podium-item > p {
+                font-size: 12px !important;
+                margin-top: 4px !important;
             }
             
             /* Action buttons mobile */
@@ -800,11 +822,11 @@
         function calculateStatistics() {
             const stats = {
                 totalVotes: 0,
-                mostPopularQuestion: null,
                 mostUnanimous: null,
+                mostUnanimousWinner: null,
                 closestRace: null,
-                selfVotes: {},
-                votingSpeed: {}
+                closestRaceTop2: [],
+                votingOrder: []
             };
             
             // Total votes
@@ -814,41 +836,41 @@
                 });
             });
             
-            // Most popular question (most votes)
-            let maxVotes = 0;
-            questions.forEach(q => {
-                const totalForQuestion = Object.values(votes[q.id] || {}).reduce((sum, v) => sum + v, 0);
-                if (totalForQuestion > maxVotes) {
-                    maxVotes = totalForQuestion;
-                    stats.mostPopularQuestion = q;
-                }
-            });
-            
-            // Most unanimous (biggest vote difference)
+            // Most unanimous (biggest vote difference) with winner name
             let maxDiff = 0;
             questions.forEach(q => {
-                const questionVotes = Object.values(votes[q.id] || {}).sort((a, b) => b - a);
-                if (questionVotes.length >= 2) {
-                    const diff = questionVotes[0] - questionVotes[1];
+                const questionVotes = votes[q.id] || {};
+                const sortedVoters = Object.entries(questionVotes).sort(([, a], [, b]) => b - a);
+                if (sortedVoters.length >= 2) {
+                    const diff = sortedVoters[0][1] - sortedVoters[1][1];
                     if (diff > maxDiff) {
                         maxDiff = diff;
                         stats.mostUnanimous = q;
+                        stats.mostUnanimousWinner = sortedVoters[0][0];
                     }
                 }
             });
             
-            // Closest race (smallest vote difference)
+            // Closest race (smallest vote difference) with top 2 names
             let minDiff = Infinity;
             questions.forEach(q => {
-                const questionVotes = Object.values(votes[q.id] || {}).sort((a, b) => b - a);
-                if (questionVotes.length >= 2 && questionVotes[0] !== questionVotes[1]) {
-                    const diff = questionVotes[0] - questionVotes[1];
-                    if (diff < minDiff) {
+                const questionVotes = votes[q.id] || {};
+                const sortedVoters = Object.entries(questionVotes).sort(([, a], [, b]) => b - a);
+                if (sortedVoters.length >= 2 && sortedVoters[0][1] !== sortedVoters[1][1]) {
+                    const diff = sortedVoters[0][1] - sortedVoters[1][1];
+                    if (diff < minDiff && diff > 0) {
                         minDiff = diff;
                         stats.closestRace = q;
+                        stats.closestRaceTop2 = [sortedVoters[0][0], sortedVoters[1][0]];
                     }
                 }
             });
+            
+            // Voting order (who completed first to last)
+            const voteTimes = Object.entries(votingStartTimes)
+                .map(([name, time]) => ({ name, time }))
+                .sort((a, b) => a.time - b.time);
+            stats.votingOrder = voteTimes.map(v => v.name);
             
             return stats;
         }
@@ -1030,19 +1052,13 @@
                             <p style="color: #6b7280;">Questions answered: <strong>${questions.length}</strong></p>
                         </div>
                         
-                        ${stats.mostPopularQuestion ? `
-                        <div class="result-card">
-                            <h3 style="margin-bottom: 16px; color: #111827;">🔥 Most Popular Question</h3>
-                            <p style="color: #6b7280; margin-bottom: 8px;">"${stats.mostPopularQuestion.question}"</p>
-                            <p style="color: #10b981; font-weight: 600;">${stats.mostPopularQuestion.award}</p>
-                        </div>
-                        ` : ''}
-                        
                         ${stats.mostUnanimous ? `
                         <div class="result-card">
                             <h3 style="margin-bottom: 16px; color: #111827;">🎯 Most Unanimous Decision</h3>
                             <p style="color: #6b7280; margin-bottom: 8px;">"${stats.mostUnanimous.question}"</p>
-                            <p style="color: #10b981; font-weight: 600;">Everyone agreed on this one!</p>
+                            <p style="color: #10b981; font-weight: 600; margin-bottom: 4px;">${stats.mostUnanimous.award}</p>
+                            <p style="color: #111827; font-weight: 700; font-size: 18px;">${profilePics[stats.mostUnanimousWinner]} ${stats.mostUnanimousWinner}</p>
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Everyone agreed on this one!</p>
                         </div>
                         ` : ''}
                         
@@ -1050,18 +1066,25 @@
                         <div class="result-card">
                             <h3 style="margin-bottom: 16px; color: #111827;">⚔️ Closest Race</h3>
                             <p style="color: #6b7280; margin-bottom: 8px;">"${stats.closestRace.question}"</p>
-                            <p style="color: #f59e0b; font-weight: 600;">It was neck and neck!</p>
+                            <p style="color: #f59e0b; font-weight: 600; margin-bottom: 8px;">${stats.closestRace.award}</p>
+                            <p style="color: #111827; font-weight: 700;">
+                                ${profilePics[stats.closestRaceTop2[0]]} ${stats.closestRaceTop2[0]} 
+                                <span style="color: #6b7280; font-weight: 400;">vs</span> 
+                                ${profilePics[stats.closestRaceTop2[1]]} ${stats.closestRaceTop2[1]}
+                            </p>
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">It was neck and neck!</p>
                         </div>
                         ` : ''}
                         
-                        ${Object.keys(allBadges).length > 0 ? `
+                        ${stats.votingOrder.length > 0 ? `
                         <div class="result-card">
-                            <h3 style="margin-bottom: 16px; color: #111827;">🏆 Badges Earned</h3>
-                            ${Object.entries(allBadges).map(([person, badgeList]) => `
-                                <div style="margin-bottom: 12px;">
-                                    <strong style="color: #111827;">${profilePics[person]} ${person}:</strong>
-                                    <span style="color: #6b7280;">${badgeList.join(', ')}</span>
-                                </div>
+                            <h3 style="margin-bottom: 16px; color: #111827;">⏱️ Voting Order</h3>
+                            <p style="color: #6b7280; margin-bottom: 12px;">Who completed the quiz first to last:</p>
+                            ${stats.votingOrder.map((name, index) => `
+                                <p style="color: #111827; margin-bottom: 8px; font-weight: ${index === 0 ? '700' : '500'};">
+                                    ${index + 1}. ${profilePics[name]} ${name}
+                                    ${index === 0 ? '<span style="color: #10b981; margin-left: 8px;">🐦 First!</span>' : ''}
+                                </p>
                             `).join('')}
                         </div>
                         ` : ''}
@@ -1321,14 +1344,15 @@
                     <div class="results-list">
                         ${sortedResults.map(([person, data], index) => {
                             const personBadges = allBadges[person] || [];
-                            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                            // Top 3 get medals, rest get #4, #5, #6
+                            const rankDisplay = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
                             
                             return `
                             <div class="result-card">
                                 <div class="result-content">
                                     <div class="result-left">
                                         <div class="rank-badge" style="background: ${data.awards[0].gradient}">
-                                            <span class="rank-number">${medal || `#${index + 1}`}</span>
+                                            <span class="rank-number">${rankDisplay}</span>
                                         </div>
                                         <div style="font-size: 48px; margin-right: 16px;">${profilePics[person]}</div>
                                         <div class="result-info">
