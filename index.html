@@ -652,21 +652,38 @@
 
                 const { data, error } = await supabase
                     .from('team_votes')
-                    .select('votes, has_voted, individual_votes, voting_start_times')
+                    .select('*')
                     .order('id', { ascending: false })
                     .limit(1)
                     .maybeSingle();
 
                 if (error) {
-                    console.error('Load error:', error);
+                    console.error('Load error details:', JSON.stringify(error));
+                    // Continue with empty data if error
+                    votes = {};
+                    hasVoted = {};
+                    individualVotes = {};
+                    votingStartTimes = {};
                 } else if (data) {
+                    console.log('Data loaded successfully:', data);
                     votes = data.votes || {};
                     hasVoted = data.has_voted || {};
                     individualVotes = data.individual_votes || {};
                     votingStartTimes = data.voting_start_times || {};
+                } else {
+                    console.log('No existing data found, starting fresh');
+                    votes = {};
+                    hasVoted = {};
+                    individualVotes = {};
+                    votingStartTimes = {};
                 }
             } catch (err) {
                 console.error('Load data error:', err);
+                // Continue with empty data if error
+                votes = {};
+                hasVoted = {};
+                individualVotes = {};
+                votingStartTimes = {};
             } finally {
                 loading = false;
                 render();
@@ -676,11 +693,14 @@
         // Save data to Supabase
         async function saveData() {
             try {
+                console.log('Attempting to save data...');
+                
                 const { data: existing, error: selectError } = await supabase
                     .from('team_votes')
                     .select('id')
                     .order('id', { ascending: false })
-                    .limit(1);
+                    .limit(1)
+                    .maybeSingle();
 
                 if (selectError) {
                     console.error('Select error:', selectError);
@@ -695,22 +715,37 @@
                     updated_at: new Date().toISOString()
                 };
 
-                if (existing && existing.length > 0) {
+                console.log('Payload to save:', payload);
+
+                if (existing && existing.id) {
+                    console.log('Updating existing record:', existing.id);
                     const { error: updateError } = await supabase
                         .from('team_votes')
                         .update(payload)
-                        .eq('id', existing[0].id);
+                        .eq('id', existing.id);
                     
-                    if (updateError) console.error('Update error:', updateError);
+                    if (updateError) {
+                        console.error('Update error:', updateError);
+                        alert('Failed to save votes. Please try again.');
+                    } else {
+                        console.log('Save successful!');
+                    }
                 } else {
+                    console.log('Creating new record...');
                     const { error: insertError } = await supabase
                         .from('team_votes')
-                        .insert(payload);
+                        .insert([payload]);
                     
-                    if (insertError) console.error('Insert error:', insertError);
+                    if (insertError) {
+                        console.error('Insert error:', insertError);
+                        alert('Failed to save votes. Please try again.');
+                    } else {
+                        console.log('Insert successful!');
+                    }
                 }
             } catch (err) {
                 console.error('Save data error:', err);
+                alert('Failed to save votes. Please try again.');
             }
         }
 
