@@ -586,7 +586,7 @@
 <body>
     <div id="app"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://zxmljycgcxvpliqkfzbd.supabase.co';
@@ -635,10 +635,66 @@
         // Initialize Supabase
         async function initSupabase() {
             try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                // Supabase v1 client configuration
+                const supabaseConfig = {
+                    schema: 'public',
+                    autoRefreshToken: true,
+                    persistSession: false,
+                    detectSessionInUrl: false
+                };
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfig);
+                console.log('Supabase client initialized');
+                console.log('API URL:', SUPABASE_URL);
+                console.log('Using Supabase version:', window.supabase.VERSION || 'unknown');
                 return true;
             } catch (err) {
                 console.error('Supabase init error:', err);
+                return false;
+            }
+        }
+
+        // Test connection
+        async function testConnection() {
+            try {
+                console.log('Testing Supabase connection...');
+                console.log('Testing URL:', SUPABASE_URL + '/rest/v1/team_votes');
+                
+                // Try a simple select without count first
+                const { data, error } = await supabase
+                    .from('team_votes')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Connection test failed');
+                    console.error('Error message:', error.message || 'No message');
+                    console.error('Error code:', error.code || 'No code');
+                    console.error('Error details:', error.details || 'No details');
+                    console.error('Error hint:', error.hint || 'No hint');
+                    
+                    // Try to fetch manually to see if it's a CORS issue
+                    try {
+                        const testResponse = await fetch(SUPABASE_URL + '/rest/v1/team_votes?select=id&limit=1', {
+                            headers: {
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                            }
+                        });
+                        console.log('Manual fetch status:', testResponse.status);
+                        const testData = await testResponse.json();
+                        console.log('Manual fetch data:', testData);
+                    } catch (fetchErr) {
+                        console.error('Manual fetch also failed:', fetchErr.message);
+                    }
+                    
+                    return false;
+                }
+                console.log('Connection successful! Data:', data);
+                return true;
+            } catch (err) {
+                console.error('Connection test exception:', err.message || err);
+                console.error('Exception stack:', err.stack || 'No stack');
                 return false;
             }
         }
@@ -650,26 +706,46 @@
                     await initSupabase();
                 }
 
-                const { data, error } = await supabase
-                    .from('team_votes')
-                    .select('*')
-                    .order('id', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (error) {
-                    console.error('Load error details:', JSON.stringify(error));
-                    // Continue with empty data if error
+                console.log('Attempting to load data from Supabase...');
+                
+                // Test connection first
+                const connected = await testConnection();
+                if (!connected) {
+                    console.warn('Connection test failed, using empty data');
                     votes = {};
                     hasVoted = {};
                     individualVotes = {};
                     votingStartTimes = {};
-                } else if (data) {
-                    console.log('Data loaded successfully:', data);
-                    votes = data.votes || {};
-                    hasVoted = data.has_voted || {};
-                    individualVotes = data.individual_votes || {};
-                    votingStartTimes = data.voting_start_times || {};
+                    loading = false;
+                    render();
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('team_votes')
+                    .select('*')
+                    .order('id', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Load error:', error);
+                    if (error.message) console.error('Error message:', error.message);
+                    if (error.code) console.error('Error code:', error.code);
+                    if (error.details) console.error('Error details:', error.details);
+                    if (error.hint) console.error('Error hint:', error.hint);
+                    
+                    // Continue with empty data
+                    votes = {};
+                    hasVoted = {};
+                    individualVotes = {};
+                    votingStartTimes = {};
+                } else if (data && data.length > 0) {
+                    console.log('Data loaded successfully, rows:', data.length);
+                    votes = data[0].votes || {};
+                    hasVoted = data[0].has_voted || {};
+                    individualVotes = data[0].individual_votes || {};
+                    votingStartTimes = data[0].voting_start_times || {};
+                    console.log('Loaded votes for:', Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1));
                 } else {
                     console.log('No existing data found, starting fresh');
                     votes = {};
@@ -678,8 +754,8 @@
                     votingStartTimes = {};
                 }
             } catch (err) {
-                console.error('Load data error:', err);
-                // Continue with empty data if error
+                console.error('Load data exception:', err);
+                // Continue with empty data
                 votes = {};
                 hasVoted = {};
                 individualVotes = {};
@@ -699,13 +775,7 @@
                     .from('team_votes')
                     .select('id')
                     .order('id', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (selectError) {
-                    console.error('Select error:', selectError);
-                    return;
-                }
+                    .limit(1);
 
                 const payload = {
                     votes: votes,
@@ -715,37 +785,37 @@
                     updated_at: new Date().toISOString()
                 };
 
-                console.log('Payload to save:', payload);
+                console.log('Saving votes for:', Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1));
 
-                if (existing && existing.id) {
-                    console.log('Updating existing record:', existing.id);
+                if (existing && existing.length > 0 && !selectError) {
+                    console.log('Updating existing record:', existing[0].id);
                     const { error: updateError } = await supabase
                         .from('team_votes')
                         .update(payload)
-                        .eq('id', existing.id);
+                        .eq('id', existing[0].id);
                     
                     if (updateError) {
-                        console.error('Update error:', updateError);
-                        alert('Failed to save votes. Please try again.');
+                        console.error('Update error:', updateError.message);
+                        alert('Failed to save votes. Please check console for details.');
                     } else {
                         console.log('Save successful!');
                     }
                 } else {
                     console.log('Creating new record...');
-                    const { error: insertError } = await supabase
+                    const { data: inserted, error: insertError } = await supabase
                         .from('team_votes')
                         .insert([payload]);
                     
                     if (insertError) {
-                        console.error('Insert error:', insertError);
-                        alert('Failed to save votes. Please try again.');
+                        console.error('Insert error:', insertError.message);
+                        alert('Failed to save votes. Please check console for details.');
                     } else {
-                        console.log('Insert successful!');
+                        console.log('Insert successful!', inserted);
                     }
                 }
             } catch (err) {
-                console.error('Save data error:', err);
-                alert('Failed to save votes. Please try again.');
+                console.error('Save data error:', err.message || err);
+                alert('Failed to save votes. Please check console for details.');
             }
         }
 
