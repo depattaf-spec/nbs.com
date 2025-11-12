@@ -611,9 +611,9 @@
         let currentScreen = 'welcome';
         let playerName = '';
         let currentQuestion = 0;
-        let votes = {};
-        let hasVoted = {};
-        let votingStartTimes = {};
+        let votes = loadFromStorage('votes') || {};
+        let hasVoted = loadFromStorage('hasVoted') || {};
+        let votingStartTimes = loadFromStorage('votingStartTimes') || {};
         
         const profilePics = {
             'Andreas': '👨‍💼',
@@ -623,6 +623,25 @@
             'Nicole': '👩',
             'Federico': '👨'
         };
+
+        // Simple storage functions
+        function saveToStorage(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('Storage error:', e);
+            }
+        }
+
+        function loadFromStorage(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error('Storage error:', e);
+                return null;
+            }
+        }
 
         function playSound(type) {
             try {
@@ -816,12 +835,14 @@
         function handleVote(member) {
             if (currentQuestion === 0 && !votingStartTimes[playerName]) {
                 votingStartTimes[playerName] = Date.now();
+                saveToStorage('votingStartTimes', votingStartTimes);
             }
             
             const questionId = questions[currentQuestion].id;
             if (!votes[questionId]) votes[questionId] = {};
             if (!votes[questionId][member]) votes[questionId][member] = 0;
             votes[questionId][member]++;
+            saveToStorage('votes', votes);
 
             if (currentQuestion < questions.length - 1) {
                 currentQuestion++;
@@ -829,6 +850,7 @@
             } else {
                 hasVoted[playerName + '_endTime'] = Date.now();
                 hasVoted[playerName] = true;
+                saveToStorage('hasVoted', hasVoted);
                 
                 currentScreen = 'waiting';
                 render();
@@ -841,6 +863,9 @@
                 votes = {};
                 hasVoted = {};
                 votingStartTimes = {};
+                saveToStorage('votes', votes);
+                saveToStorage('hasVoted', hasVoted);
+                saveToStorage('votingStartTimes', votingStartTimes);
                 currentScreen = 'welcome';
                 playerName = '';
                 currentQuestion = 0;
