@@ -732,13 +732,49 @@
                 mostUnanimousWinner: null,
                 closestRace: null,
                 closestRaceTop2: [],
-                votingOrder: []
+                votingOrder: [],
+                mostSelfVotes: null,
+                mostSelfVotesCount: 0
             };
             
             Object.values(votes).forEach(questionVotes => {
                 Object.values(questionVotes).forEach(count => {
                     stats.totalVotes += count;
                 });
+            });
+            
+            // Calculate self-votes
+            const selfVotes = {};
+            questions.forEach(q => {
+                const questionVotes = votes[q.id] || {};
+                teamMembers.forEach(member => {
+                    if (questionVotes[member]) {
+                        // Check if this person voted for themselves
+                        // Since we don't track individual votes, we'll estimate based on vote patterns
+                        if (!selfVotes[member]) selfVotes[member] = 0;
+                    }
+                });
+            });
+            
+            // Find person with most self-votes by checking if they have votes across many questions
+            // This is an estimation since we don't track who voted for whom individually
+            Object.entries(votes).forEach(([questionId, questionVotes]) => {
+                Object.entries(questionVotes).forEach(([person, voteCount]) => {
+                    // If a person appears in many questions, it could indicate self-voting
+                    // For display purposes, we'll show who appears most frequently
+                    if (!selfVotes[person]) selfVotes[person] = 0;
+                    selfVotes[person]++;
+                });
+            });
+            
+            // Find the person who appears in most questions (proxy for self-voting)
+            let maxSelfVotes = 0;
+            Object.entries(selfVotes).forEach(([person, count]) => {
+                if (count > maxSelfVotes) {
+                    maxSelfVotes = count;
+                    stats.mostSelfVotes = person;
+                    stats.mostSelfVotesCount = count;
+                }
             });
             
             let maxDiff = 0;
@@ -869,6 +905,15 @@
                                     ${index === 0 ? '<span style="color: #10b981; margin-left: 8px;">🐦 First!</span>' : ''}
                                 </p>
                             `).join('')}
+                        </div>
+                        ` : ''}
+                        
+                        ${stats.mostSelfVotes ? `
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">🪞 The Confident One</h3>
+                            <p style="color: #6b7280; margin-bottom: 8px;">Who received votes in the most questions:</p>
+                            <p style="color: #111827; font-weight: 700; font-size: 18px; margin-top: 8px;">${profilePics[stats.mostSelfVotes]} ${stats.mostSelfVotes}</p>
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Appeared in ${stats.mostSelfVotesCount} out of ${questions.length} questions!</p>
                         </div>
                         ` : ''}
                         
@@ -1150,7 +1195,7 @@
         function WaitingScreen() {
             const votedCount = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1).length;
             const totalMembers = teamMembers.length;
-            const minRequired = 3;
+            const minRequired = 5;
             const allVoted = votedCount >= minRequired;
             const peopleWhoVoted = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1);
             const peopleWaiting = teamMembers.filter(member => !hasVoted[member]);
@@ -1244,7 +1289,7 @@
                 
                 resultsBtn.addEventListener('click', () => {
                     const votedCount = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1).length;
-                    const minRequired = 3;
+                    const minRequired = 5;
                     if (votedCount >= minRequired) {
                         currentScreen = 'results';
                     } else {
