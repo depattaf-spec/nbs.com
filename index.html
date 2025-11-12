@@ -586,8 +586,14 @@
 <body>
     <div id="app"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
+        const SUPABASE_URL = 'https://zxmljycgcxvpliqkfzbd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4bWxqeWNnY3h2cGxpcWtmemJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjMzOTMsImV4cCI6MjA3ODQzOTM5M30.d84DHtVKYeNq1yFNQ86mG4t5jbRuB9hR27Md4uqFZe8';
+        
+        let supabase;
+        
         const teamMembers = ['Andreas', 'Raquel', 'Sara', 'Ines', 'Nicole', 'Federico'];
         
         const questions = [
@@ -611,9 +617,11 @@
         let currentScreen = 'welcome';
         let playerName = '';
         let currentQuestion = 0;
-        let votes = loadFromStorage('votes') || {};
-        let hasVoted = loadFromStorage('hasVoted') || {};
-        let votingStartTimes = loadFromStorage('votingStartTimes') || {};
+        let votes = {};
+        let hasVoted = {};
+        let votingStartTimes = {};
+        let individualVotes = {};
+        let loading = true;
         
         const profilePics = {
             'Andreas': '👨‍💼',
@@ -624,22 +632,85 @@
             'Federico': '👨'
         };
 
-        // Simple storage functions
-        function saveToStorage(key, data) {
+        // Initialize Supabase
+        async function initSupabase() {
             try {
-                localStorage.setItem(key, JSON.stringify(data));
-            } catch (e) {
-                console.error('Storage error:', e);
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                return true;
+            } catch (err) {
+                console.error('Supabase init error:', err);
+                return false;
             }
         }
 
-        function loadFromStorage(key) {
+        // Load data from Supabase
+        async function loadData() {
             try {
-                const data = localStorage.getItem(key);
-                return data ? JSON.parse(data) : null;
-            } catch (e) {
-                console.error('Storage error:', e);
-                return null;
+                if (!supabase) {
+                    await initSupabase();
+                }
+
+                const { data, error } = await supabase
+                    .from('team_votes')
+                    .select('votes, has_voted, individual_votes, voting_start_times')
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error('Load error:', error);
+                } else if (data) {
+                    votes = data.votes || {};
+                    hasVoted = data.has_voted || {};
+                    individualVotes = data.individual_votes || {};
+                    votingStartTimes = data.voting_start_times || {};
+                }
+            } catch (err) {
+                console.error('Load data error:', err);
+            } finally {
+                loading = false;
+                render();
+            }
+        }
+
+        // Save data to Supabase
+        async function saveData() {
+            try {
+                const { data: existing, error: selectError } = await supabase
+                    .from('team_votes')
+                    .select('id')
+                    .order('id', { ascending: false })
+                    .limit(1);
+
+                if (selectError) {
+                    console.error('Select error:', selectError);
+                    return;
+                }
+
+                const payload = {
+                    votes: votes,
+                    has_voted: hasVoted,
+                    individual_votes: individualVotes,
+                    voting_start_times: votingStartTimes,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (existing && existing.length > 0) {
+                    const { error: updateError } = await supabase
+                        .from('team_votes')
+                        .update(payload)
+                        .eq('id', existing[0].id);
+                    
+                    if (updateError) console.error('Update error:', updateError);
+                } else {
+                    const { error: insertError } = await supabase
+                        .from('team_votes')
+                        .insert(payload);
+                    
+                    if (insertError) console.error('Insert error:', insertError);
+                }
+            } catch (err) {
+                console.error('Save data error:', err);
             }
         }
 
@@ -762,33 +833,23 @@
                 });
             });
             
-            // Calculate self-votes
-            const selfVotes = {};
-            questions.forEach(q => {
-                const questionVotes = votes[q.id] || {};
-                teamMembers.forEach(member => {
-                    if (questionVotes[member]) {
-                        // Check if this person voted for themselves
-                        // Since we don't track individual votes, we'll estimate based on vote patterns
-                        if (!selfVotes[member]) selfVotes[member] = 0;
+            // Calculate actual self-votes from individual voting records
+            const selfVoteCounts = {};
+            Object.entries(individualVotes).forEach(([voter, votedFor]) => {
+                let selfVoteCount = 0;
+                Object.entries(votedFor).forEach(([questionId, recipient]) => {
+                    if (voter === recipient) {
+                        selfVoteCount++;
                     }
                 });
+                if (selfVoteCount > 0) {
+                    selfVoteCounts[voter] = selfVoteCount;
+                }
             });
             
-            // Find person with most self-votes by checking if they have votes across many questions
-            // This is an estimation since we don't track who voted for whom individually
-            Object.entries(votes).forEach(([questionId, questionVotes]) => {
-                Object.entries(questionVotes).forEach(([person, voteCount]) => {
-                    // If a person appears in many questions, it could indicate self-voting
-                    // For display purposes, we'll show who appears most frequently
-                    if (!selfVotes[person]) selfVotes[person] = 0;
-                    selfVotes[person]++;
-                });
-            });
-            
-            // Find the person who appears in most questions (proxy for self-voting)
+            // Find person with most self-votes
             let maxSelfVotes = 0;
-            Object.entries(selfVotes).forEach(([person, count]) => {
+            Object.entries(selfVoteCounts).forEach(([person, count]) => {
                 if (count > maxSelfVotes) {
                     maxSelfVotes = count;
                     stats.mostSelfVotes = person;
@@ -835,14 +896,18 @@
         function handleVote(member) {
             if (currentQuestion === 0 && !votingStartTimes[playerName]) {
                 votingStartTimes[playerName] = Date.now();
-                saveToStorage('votingStartTimes', votingStartTimes);
             }
             
             const questionId = questions[currentQuestion].id;
+            
+            // Track individual votes for self-voting statistics
+            if (!individualVotes[playerName]) individualVotes[playerName] = {};
+            individualVotes[playerName][questionId] = member;
+            
+            // Track aggregate votes for results
             if (!votes[questionId]) votes[questionId] = {};
             if (!votes[questionId][member]) votes[questionId][member] = 0;
             votes[questionId][member]++;
-            saveToStorage('votes', votes);
 
             if (currentQuestion < questions.length - 1) {
                 currentQuestion++;
@@ -850,10 +915,12 @@
             } else {
                 hasVoted[playerName + '_endTime'] = Date.now();
                 hasVoted[playerName] = true;
-                saveToStorage('hasVoted', hasVoted);
                 
-                currentScreen = 'waiting';
-                render();
+                // Save to database
+                saveData().then(() => {
+                    currentScreen = 'waiting';
+                    render();
+                });
             }
         }
 
@@ -863,13 +930,13 @@
                 votes = {};
                 hasVoted = {};
                 votingStartTimes = {};
-                saveToStorage('votes', votes);
-                saveToStorage('hasVoted', hasVoted);
-                saveToStorage('votingStartTimes', votingStartTimes);
-                currentScreen = 'welcome';
-                playerName = '';
-                currentQuestion = 0;
-                render();
+                individualVotes = {};
+                saveData().then(() => {
+                    currentScreen = 'welcome';
+                    playerName = '';
+                    currentQuestion = 0;
+                    render();
+                });
             } else if (password !== null) {
                 alert('Incorrect password. Access denied.');
             }
@@ -935,10 +1002,10 @@
                         
                         ${stats.mostSelfVotes ? `
                         <div class="result-card">
-                            <h3 style="margin-bottom: 16px; color: #111827;">🪞 The Confident One</h3>
-                            <p style="color: #6b7280; margin-bottom: 8px;">Who received votes in the most questions:</p>
+                            <h3 style="margin-bottom: 16px; color: #111827;">🪞 Most Self-Confident</h3>
+                            <p style="color: #6b7280; margin-bottom: 8px;">Who voted for themselves the most:</p>
                             <p style="color: #111827; font-weight: 700; font-size: 18px; margin-top: 8px;">${profilePics[stats.mostSelfVotes]} ${stats.mostSelfVotes}</p>
-                            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Appeared in ${stats.mostSelfVotesCount} out of ${questions.length} questions!</p>
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Voted for themselves ${stats.mostSelfVotesCount} out of ${questions.length} times!</p>
                         </div>
                         ` : ''}
                         
@@ -1262,7 +1329,7 @@
                         ${allVoted ? `
                             <button onclick="viewResults()" class="btn-primary">View Results</button>
                         ` : `
-                            <button onclick="render()" class="btn-secondary">Refresh Progress</button>
+                            <button onclick="refreshProgress()" class="btn-secondary">Refresh Progress</button>
                         `}
                         
                         <div class="footer">
@@ -1275,6 +1342,20 @@
 
         function render() {
             const app = document.getElementById('app');
+
+            if (loading) {
+                app.innerHTML = `
+                    <div class="container">
+                        <div class="card">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p style="color: #6b7280; font-weight: 500;">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
 
             if (currentScreen === 'welcome') {
                 app.innerHTML = WelcomeScreen();
@@ -1312,7 +1393,12 @@
                     render();
                 });
                 
-                resultsBtn.addEventListener('click', () => {
+                resultsBtn.addEventListener('click', async () => {
+                    // Reload data first to get latest vote count
+                    loading = true;
+                    render();
+                    await loadData();
+                    
                     const votedCount = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1).length;
                     const minRequired = 5;
                     if (votedCount >= minRequired) {
@@ -1331,6 +1417,12 @@
             } else if (currentScreen === 'statistics') {
                 app.innerHTML = StatisticsScreen();
             }
+        }
+
+        async function refreshProgress() {
+            loading = true;
+            render();
+            await loadData();
         }
 
         function viewResults() {
@@ -1358,11 +1450,13 @@
         window.handleVote = handleVote;
         window.voteAgain = voteAgain;
         window.promptResetPassword = promptResetPassword;
+        window.refreshProgress = refreshProgress;
         window.viewResults = viewResults;
         window.viewStatistics = viewStatistics;
         window.backToResults = backToResults;
 
-        render();
+        // Initialize app
+        loadData();
     </script>
 </body>
 </html>
