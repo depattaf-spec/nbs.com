@@ -1008,20 +1008,64 @@
         }
 
         function promptResetPassword() {
-            const password = prompt('Enter password to reset all votes:');
+            const password = prompt('Enter password to reset ALL votes from database:');
             if (password === 'reset123') {
+                // Clear local data
                 votes = {};
                 hasVoted = {};
                 votingStartTimes = {};
                 individualVotes = {};
-                saveData().then(() => {
+                
+                // Delete ALL rows from database
+                deleteAllVotesFromDatabase().then(() => {
+                    alert('✅ All votes have been deleted from the database!');
                     currentScreen = 'welcome';
                     playerName = '';
                     currentQuestion = 0;
                     render();
                 });
             } else if (password !== null) {
-                alert('Incorrect password. Access denied.');
+                alert('❌ Incorrect password. Access denied.');
+            }
+        }
+
+        async function deleteAllVotesFromDatabase() {
+            try {
+                console.log('🗑️ Deleting ALL votes from database...');
+                
+                // Get all record IDs
+                const { data: allRecords, error: selectError } = await supabase
+                    .from('team_votes')
+                    .select('id');
+                
+                if (selectError) {
+                    console.error('❌ Error fetching records:', selectError);
+                    alert('⚠️ Failed to fetch records: ' + selectError.message);
+                    return;
+                }
+                
+                if (!allRecords || allRecords.length === 0) {
+                    console.log('ℹ️ No records to delete');
+                    return;
+                }
+                
+                console.log(`Found ${allRecords.length} records to delete`);
+                
+                // Delete all records
+                const { error: deleteError } = await supabase
+                    .from('team_votes')
+                    .delete()
+                    .in('id', allRecords.map(r => r.id));
+                
+                if (deleteError) {
+                    console.error('❌ Delete error:', deleteError);
+                    alert('⚠️ Failed to delete votes: ' + deleteError.message);
+                } else {
+                    console.log('✅ Successfully deleted all votes from database!');
+                }
+            } catch (err) {
+                console.error('❌ Delete exception:', err);
+                alert('⚠️ Failed to delete votes: ' + err.message);
             }
         }
 
