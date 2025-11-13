@@ -5,16 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NBS Team Ice Breaker</title>
     
+    <!-- Allow connections to Supabase and CDN resources -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://zxmljycgcxvpliqkfzbd.supabase.co; img-src 'self' data:; font-src 'self' data:;">
+    
     <!-- Favicon for all platforms -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23111827;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23374151;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='15' fill='url(%23grad)' transform='rotate(3 50 50)'/%3E%3Ctext x='50' y='65' font-family='Arial, sans-serif' font-size='32' font-weight='900' fill='white' text-anchor='middle' transform='rotate(-3 50 65)'%3ENBS%3C/text%3E%3Ccircle cx='75' cy='75' r='12' fill='%232563eb'/%3E%3C/svg%3E">
     
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23111827;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23374151;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='40' fill='url(%23grad)' transform='rotate(3 90 90)'/%3E%3Ctext x='90' y='115' font-family='Arial, sans-serif' font-size='60' font-weight='900' fill='white' text-anchor='middle' transform='rotate(-3 90 115)'%3ENBS%3C/text%3E%3Ccircle cx='135' cy='135' r='22' fill='%232563eb'/%3E%3C/svg%3E">
-    
-    <!-- Android Chrome -->
-    <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22NBS%20Team%20Ice%20Breaker%22%2C%22short_name%22%3A%22NBS%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20192%20192%27%253E%253Cdefs%253E%253ClinearGradient%20id%3D%27grad%27%20x1%3D%270%2525%27%20y1%3D%270%2525%27%20x2%3D%27100%2525%27%20y2%3D%27100%2525%27%253E%253Cstop%20offset%3D%270%2525%27%20style%3D%27stop-color%3A%2523111827%3Bstop-opacity%3A1%27%20%2F%253E%253Cstop%20offset%3D%27100%2525%27%20style%3D%27stop-color%3A%2523374151%3Bstop-opacity%3A1%27%20%2F%253E%253C%2FlinearGradient%253E%253C%2Fdefs%253E%253Crect%20width%3D%27192%27%20height%3D%27192%27%20rx%3D%2740%27%20fill%3D%27url%28%2523grad%29%27%20transform%3D%27rotate%283%2096%2096%29%27%2F%253E%253Ctext%20x%3D%2796%27%20y%3D%27125%27%20font-family%3D%27Arial%2C%20sans-serif%27%20font-size%3D%2770%27%20font-weight%3D%27900%27%20fill%3D%27white%27%20text-anchor%3D%27middle%27%20transform%3D%27rotate%28-3%2096%20125%29%27%253ENBS%253C%2Ftext%253E%253Ccircle%20cx%3D%27145%27%20cy%3D%27145%27%20r%3D%2724%27%20fill%3D%27%25232563eb%27%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%253E%253Cdefs%253E%253ClinearGradient%20id%3D%27grad%27%20x1%3D%270%2525%27%20y1%3D%270%2525%27%20x2%3D%27100%2525%27%20y2%3D%27100%2525%27%253E%253Cstop%20offset%3D%270%2525%27%20style%3D%27stop-color%3A%2523111827%3Bstop-opacity%3A1%27%20%2F%253E%253Cstop%20offset%3D%27100%2525%27%20style%3D%27stop-color%3A%2523374151%3Bstop-opacity%3A1%27%20%2F%253E%253C%2FlinearGradient%253E%253C%2Fdefs%253E%253Crect%20width%3D%27512%27%20height%3D%27512%27%20rx%3D%27100%27%20fill%3D%27url%28%2523grad%29%27%20transform%3D%27rotate%283%20256%20256%29%27%2F%253E%253Ctext%20x%3D%27256%27%20y%3D%27340%27%20font-family%3D%27Arial%2C%20sans-serif%27%20font-size%3D%27180%27%20font-weight%3D%27900%27%20fill%3D%27white%27%20text-anchor%3D%27middle%27%20transform%3D%27rotate%28-3%20256%20340%29%27%253ENBS%253C%2Ftext%253E%253Ccircle%20cx%3D%27385%27%20cy%3D%27385%27%20r%3D%2760%27%20fill%3D%27%25232563eb%27%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%2C%22theme_color%22%3A%22%23111827%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22display%22%3A%22standalone%22%7D">
-    
-    <!-- Theme color for mobile browsers -->
     <meta name="theme-color" content="#111827">
     
     <style>
@@ -635,7 +631,6 @@
         // Initialize Supabase
         async function initSupabase() {
             try {
-                // Supabase v1 client configuration
                 const supabaseConfig = {
                     schema: 'public',
                     autoRefreshToken: true,
@@ -644,118 +639,93 @@
                 };
                 
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfig);
-                console.log('Supabase client initialized');
-                console.log('API URL:', SUPABASE_URL);
-                console.log('Using Supabase version:', window.supabase.VERSION || 'unknown');
+                console.log('✅ Supabase initialized');
                 return true;
             } catch (err) {
-                console.error('Supabase init error:', err);
+                console.error('❌ Supabase init error:', err);
                 return false;
             }
         }
 
-        // Test connection
-        async function testConnection() {
-            try {
-                console.log('Testing Supabase connection...');
-                console.log('Testing URL:', SUPABASE_URL + '/rest/v1/team_votes');
-                
-                // Try a simple select without count first
-                const { data, error } = await supabase
-                    .from('team_votes')
-                    .select('id')
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Connection test failed');
-                    console.error('Error message:', error.message || 'No message');
-                    console.error('Error code:', error.code || 'No code');
-                    console.error('Error details:', error.details || 'No details');
-                    console.error('Error hint:', error.hint || 'No hint');
-                    
-                    // Try to fetch manually to see if it's a CORS issue
-                    try {
-                        const testResponse = await fetch(SUPABASE_URL + '/rest/v1/team_votes?select=id&limit=1', {
-                            headers: {
-                                'apikey': SUPABASE_ANON_KEY,
-                                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                            }
-                        });
-                        console.log('Manual fetch status:', testResponse.status);
-                        const testData = await testResponse.json();
-                        console.log('Manual fetch data:', testData);
-                    } catch (fetchErr) {
-                        console.error('Manual fetch also failed:', fetchErr.message);
-                    }
-                    
-                    return false;
-                }
-                console.log('Connection successful! Data:', data);
-                return true;
-            } catch (err) {
-                console.error('Connection test exception:', err.message || err);
-                console.error('Exception stack:', err.stack || 'No stack');
-                return false;
-            }
-        }
-
-        // Load data from Supabase
+        // FIXED: Load and merge all votes properly
         async function loadData() {
             try {
                 if (!supabase) {
                     await initSupabase();
                 }
 
-                console.log('Attempting to load data from Supabase...');
+                console.log('📥 Loading all votes from database...');
                 
-                // Test connection first
-                const connected = await testConnection();
-                if (!connected) {
-                    console.warn('Connection test failed, using empty data');
-                    votes = {};
-                    hasVoted = {};
-                    individualVotes = {};
-                    votingStartTimes = {};
-                    loading = false;
-                    render();
-                    return;
-                }
-
+                // Get ALL rows, not just the last one
+                // Try without order first to see if that's causing issues
                 const { data, error } = await supabase
                     .from('team_votes')
-                    .select('*')
-                    .order('id', { ascending: false })
-                    .limit(1);
+                    .select('*');
 
                 if (error) {
-                    console.error('Load error:', error);
-                    if (error.message) console.error('Error message:', error.message);
-                    if (error.code) console.error('Error code:', error.code);
-                    if (error.details) console.error('Error details:', error.details);
-                    if (error.hint) console.error('Error hint:', error.hint);
-                    
-                    // Continue with empty data
+                    console.error('❌ Load error:', error);
+                    console.error('Error details:', JSON.stringify(error, null, 2));
+                    // Initialize with empty data so app still works
                     votes = {};
                     hasVoted = {};
                     individualVotes = {};
                     votingStartTimes = {};
                 } else if (data && data.length > 0) {
-                    console.log('Data loaded successfully, rows:', data.length);
-                    votes = data[0].votes || {};
-                    hasVoted = data[0].has_voted || {};
-                    individualVotes = data[0].individual_votes || {};
-                    votingStartTimes = data[0].voting_start_times || {};
-                    console.log('Loaded votes for:', Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1));
+                    // Sort data by created_at in JavaScript instead
+                    data.sort((a, b) => {
+                        const dateA = new Date(a.created_at || 0);
+                        const dateB = new Date(b.created_at || 0);
+                        return dateA - dateB;
+                    });
+                    console.log(`✅ Found ${data.length} vote records in database`);
+                    
+                    // Initialize empty objects
+                    votes = {};
+                    hasVoted = {};
+                    individualVotes = {};
+                    votingStartTimes = {};
+                    
+                    // Merge all records - later records override earlier ones
+                    data.forEach((record, index) => {
+                        console.log(`Merging record ${index + 1}:`, {
+                            voters: Object.keys(record.has_voted || {}).filter(k => k.indexOf('_endTime') === -1)
+                        });
+                        
+                        // Merge votes
+                        if (record.votes) {
+                            Object.keys(record.votes).forEach(questionId => {
+                                if (!votes[questionId]) votes[questionId] = {};
+                                Object.assign(votes[questionId], record.votes[questionId]);
+                            });
+                        }
+                        
+                        // Merge hasVoted
+                        if (record.has_voted) {
+                            Object.assign(hasVoted, record.has_voted);
+                        }
+                        
+                        // Merge individual votes
+                        if (record.individual_votes) {
+                            Object.assign(individualVotes, record.individual_votes);
+                        }
+                        
+                        // Merge voting start times
+                        if (record.voting_start_times) {
+                            Object.assign(votingStartTimes, record.voting_start_times);
+                        }
+                    });
+                    
+                    const votersList = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1);
+                    console.log(`✅ Total unique voters after merge: ${votersList.length}`, votersList);
                 } else {
-                    console.log('No existing data found, starting fresh');
+                    console.log('ℹ️ No existing data, starting fresh');
                     votes = {};
                     hasVoted = {};
                     individualVotes = {};
                     votingStartTimes = {};
                 }
             } catch (err) {
-                console.error('Load data exception:', err);
-                // Continue with empty data
+                console.error('❌ Load exception:', err);
                 votes = {};
                 hasVoted = {};
                 individualVotes = {};
@@ -766,17 +736,11 @@
             }
         }
 
-        // Save data to Supabase
+        // FIXED: Save as NEW row to avoid race conditions (works without created_at)
         async function saveData() {
             try {
-                console.log('Attempting to save data...');
+                console.log('💾 Saving vote data as new record...');
                 
-                const { data: existing, error: selectError } = await supabase
-                    .from('team_votes')
-                    .select('id')
-                    .order('id', { ascending: false })
-                    .limit(1);
-
                 const payload = {
                     votes: votes,
                     has_voted: hasVoted,
@@ -785,37 +749,57 @@
                     updated_at: new Date().toISOString()
                 };
 
-                console.log('Saving votes for:', Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1));
+                const votersList = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1);
+                console.log('Saving votes for:', votersList);
 
-                if (existing && existing.length > 0 && !selectError) {
-                    console.log('Updating existing record:', existing[0].id);
-                    const { error: updateError } = await supabase
-                        .from('team_votes')
-                        .update(payload)
-                        .eq('id', existing[0].id);
+                // Always INSERT a new row instead of updating
+                const { data: inserted, error: insertError } = await supabase
+                    .from('team_votes')
+                    .insert([payload])
+                    .select();
+                
+                if (insertError) {
+                    console.error('❌ Insert error:', insertError);
+                    console.error('Error details:', JSON.stringify(insertError, null, 2));
+                    console.error('Error hint:', insertError.hint || 'No hint available');
+                    console.error('Error code:', insertError.code || 'No code');
                     
-                    if (updateError) {
-                        console.error('Update error:', updateError.message);
-                        alert('Failed to save votes. Please check console for details.');
+                    // Show user-friendly error
+                    if (insertError.message && (insertError.message.includes('CORS') || insertError.message.includes('Network'))) {
+                        alert('⚠️ Network error. Your vote was saved locally but may not sync with others. Please check your internet connection.');
                     } else {
-                        console.log('Save successful!');
+                        alert('⚠️ Failed to save votes: ' + (insertError.message || 'Unknown error') + '. Your vote may not be visible to others.');
                     }
                 } else {
-                    console.log('Creating new record...');
-                    const { data: inserted, error: insertError } = await supabase
-                        .from('team_votes')
-                        .insert([payload]);
+                    console.log('✅ Vote saved successfully as new record!');
+                    console.log('Saved record:', inserted);
                     
-                    if (insertError) {
-                        console.error('Insert error:', insertError.message);
-                        alert('Failed to save votes. Please check console for details.');
-                    } else {
-                        console.log('Insert successful!', inserted);
-                    }
+                    // Clean up old records - keep only last 100
+                    setTimeout(async () => {
+                        try {
+                            const { data: allRecords } = await supabase
+                                .from('team_votes')
+                                .select('id, updated_at')
+                                .order('id', { ascending: false })
+                                .limit(200);
+                            
+                            if (allRecords && allRecords.length > 100) {
+                                const idsToDelete = allRecords.slice(100).map(r => r.id);
+                                await supabase
+                                    .from('team_votes')
+                                    .delete()
+                                    .in('id', idsToDelete);
+                                console.log(`🧹 Cleaned up ${idsToDelete.length} old records`);
+                            }
+                        } catch (cleanupErr) {
+                            console.log('⚠️ Cleanup failed (non-critical):', cleanupErr.message);
+                        }
+                    }, 2000);
                 }
             } catch (err) {
-                console.error('Save data error:', err.message || err);
-                alert('Failed to save votes. Please check console for details.');
+                console.error('❌ Save error:', err);
+                console.error('Exception details:', err.message, err.stack);
+                alert('⚠️ Failed to save votes. Your vote is saved locally but may not be visible to others. Error: ' + err.message);
             }
         }
 
@@ -824,12 +808,11 @@
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
                 if (type === 'trumpet') {
-                    // Trumpet fanfare celebration
                     const notes = [
-                        { freq: 523.25, time: 0, duration: 0.15 },      // C
-                        { freq: 659.25, time: 0.15, duration: 0.15 },   // E
-                        { freq: 783.99, time: 0.3, duration: 0.15 },    // G
-                        { freq: 1046.50, time: 0.5, duration: 0.4 }     // High C (long)
+                        { freq: 523.25, time: 0, duration: 0.15 },
+                        { freq: 659.25, time: 0.15, duration: 0.15 },
+                        { freq: 783.99, time: 0.3, duration: 0.15 },
+                        { freq: 1046.50, time: 0.5, duration: 0.4 }
                     ];
                     
                     notes.forEach(note => {
@@ -839,7 +822,7 @@
                         oscillator.connect(gainNode);
                         gainNode.connect(audioContext.destination);
                         
-                        oscillator.type = 'sawtooth'; // Brass-like sound
+                        oscillator.type = 'sawtooth';
                         oscillator.frequency.value = note.freq;
                         
                         gainNode.gain.setValueAtTime(0, audioContext.currentTime + note.time);
@@ -865,7 +848,7 @@
 
         function launchCelebrationConfetti() {
             if (typeof confetti !== 'undefined') {
-                const duration = 750; // Reduced from 3000 to 750ms (1/4 of original)
+                const duration = 750;
                 const end = Date.now() + duration;
 
                 (function frame() {
@@ -938,7 +921,6 @@
                 });
             });
             
-            // Calculate actual self-votes from individual voting records
             const selfVoteCounts = {};
             Object.entries(individualVotes).forEach(([voter, votedFor]) => {
                 let selfVoteCount = 0;
@@ -952,7 +934,6 @@
                 }
             });
             
-            // Find person with most self-votes
             let maxSelfVotes = 0;
             Object.entries(selfVoteCounts).forEach(([person, count]) => {
                 if (count > maxSelfVotes) {
@@ -980,9 +961,9 @@
             questions.forEach(q => {
                 const questionVotes = votes[q.id] || {};
                 const sortedVoters = Object.entries(questionVotes).sort(([, a], [, b]) => b - a);
-                if (sortedVoters.length >= 2 && sortedVoters[0][1] !== sortedVoters[1][1]) {
+                if (sortedVoters.length >= 2) {
                     const diff = sortedVoters[0][1] - sortedVoters[1][1];
-                    if (diff < minDiff && diff > 0) {
+                    if (diff > 0 && diff < minDiff) {
                         minDiff = diff;
                         stats.closestRace = q;
                         stats.closestRaceTop2 = [sortedVoters[0][0], sortedVoters[1][0]];
@@ -1005,11 +986,9 @@
             
             const questionId = questions[currentQuestion].id;
             
-            // Track individual votes for self-voting statistics
             if (!individualVotes[playerName]) individualVotes[playerName] = {};
             individualVotes[playerName][questionId] = member;
             
-            // Track aggregate votes for results
             if (!votes[questionId]) votes[questionId] = {};
             if (!votes[questionId][member]) votes[questionId][member] = 0;
             votes[questionId][member]++;
@@ -1021,7 +1000,6 @@
                 hasVoted[playerName + '_endTime'] = Date.now();
                 hasVoted[playerName] = true;
                 
-                // Save to database
                 saveData().then(() => {
                     currentScreen = 'waiting';
                     render();
@@ -1499,7 +1477,6 @@
                 });
                 
                 resultsBtn.addEventListener('click', async () => {
-                    // Reload data first to get latest vote count
                     loading = true;
                     render();
                     await loadData();
