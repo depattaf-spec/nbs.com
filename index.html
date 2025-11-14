@@ -736,11 +736,35 @@
             }
         }
 
-        // FIXED: Save as NEW row to avoid race conditions (works without created_at)
+        // IMPROVED: Save vote - create new row only if player hasn't voted yet, otherwise update
         async function saveData() {
             try {
-                console.log('💾 Saving vote data as new record...');
+                console.log('💾 Saving vote data...');
                 
+                const votersList = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1);
+                console.log('Saving votes for:', votersList);
+
+                // Check if this player already has a record in the database
+                const { data: existingRecords, error: selectError } = await supabase
+                    .from('team_votes')
+                    .select('*');
+                
+                if (selectError) {
+                    console.error('❌ Error checking existing records:', selectError);
+                }
+
+                // Find if current player already has a record
+                let playerRecordId = null;
+                if (existingRecords && existingRecords.length > 0) {
+                    for (const record of existingRecords) {
+                        if (record.has_voted && record.has_voted[playerName]) {
+                            playerRecordId = record.id;
+                            console.log(`Found existing record for ${playerName}: ID ${playerRecordId}`);
+                            break;
+                        }
+                    }
+                }
+
                 const payload = {
                     votes: votes,
                     has_voted: hasVoted,
@@ -749,57 +773,43 @@
                     updated_at: new Date().toISOString()
                 };
 
-                const votersList = Object.keys(hasVoted).filter(k => k.indexOf('_endTime') === -1);
-                console.log('Saving votes for:', votersList);
-
-                // Always INSERT a new row instead of updating
-                const { data: inserted, error: insertError } = await supabase
-                    .from('team_votes')
-                    .insert([payload])
-                    .select();
-                
-                if (insertError) {
-                    console.error('❌ Insert error:', insertError);
-                    console.error('Error details:', JSON.stringify(insertError, null, 2));
-                    console.error('Error hint:', insertError.hint || 'No hint available');
-                    console.error('Error code:', insertError.code || 'No code');
+                if (playerRecordId) {
+                    // UPDATE existing record
+                    console.log(`Updating existing record ${playerRecordId} for ${playerName}`);
                     
-                    // Show user-friendly error
-                    if (insertError.message && (insertError.message.includes('CORS') || insertError.message.includes('Network'))) {
-                        alert('⚠️ Network error. Your vote was saved locally but may not sync with others. Please check your internet connection.');
+                    const { error: updateError } = await supabase
+                        .from('team_votes')
+                        .update(payload)
+                        .eq('id', playerRecordId);
+                    
+                    if (updateError) {
+                        console.error('❌ Update error:', updateError);
+                        console.error('Error details:', JSON.stringify(updateError, null, 2));
+                        alert('⚠️ Failed to update votes: ' + (updateError.message || 'Unknown error'));
                     } else {
-                        alert('⚠️ Failed to save votes: ' + (insertError.message || 'Unknown error') + '. Your vote may not be visible to others.');
+                        console.log('✅ Vote updated successfully!');
                     }
                 } else {
-                    console.log('✅ Vote saved successfully as new record!');
-                    console.log('Saved record:', inserted);
+                    // INSERT new record (first time voting)
+                    console.log(`Creating new record for ${playerName}`);
                     
-                    // Clean up old records - keep only last 100
-                    setTimeout(async () => {
-                        try {
-                            const { data: allRecords } = await supabase
-                                .from('team_votes')
-                                .select('id, updated_at')
-                                .order('id', { ascending: false })
-                                .limit(200);
-                            
-                            if (allRecords && allRecords.length > 100) {
-                                const idsToDelete = allRecords.slice(100).map(r => r.id);
-                                await supabase
-                                    .from('team_votes')
-                                    .delete()
-                                    .in('id', idsToDelete);
-                                console.log(`🧹 Cleaned up ${idsToDelete.length} old records`);
-                            }
-                        } catch (cleanupErr) {
-                            console.log('⚠️ Cleanup failed (non-critical):', cleanupErr.message);
-                        }
-                    }, 2000);
+                    const { data: inserted, error: insertError } = await supabase
+                        .from('team_votes')
+                        .insert([payload])
+                        .select();
+                    
+                    if (insertError) {
+                        console.error('❌ Insert error:', insertError);
+                        console.error('Error details:', JSON.stringify(insertError, null, 2));
+                        alert('⚠️ Failed to save votes: ' + (insertError.message || 'Unknown error'));
+                    } else {
+                        console.log('✅ Vote saved successfully as new record!', inserted);
+                    }
                 }
             } catch (err) {
                 console.error('❌ Save error:', err);
                 console.error('Exception details:', err.message, err.stack);
-                alert('⚠️ Failed to save votes. Your vote is saved locally but may not be visible to others. Error: ' + err.message);
+                alert('⚠️ Failed to save votes. Error: ' + err.message);
             }
         }
 
@@ -1033,38 +1043,64 @@
             try {
                 console.log('🗑️ Deleting ALL votes from database...');
                 
-                // Get all record IDs
-                const { data: allRecords, error: selectError } = await supabase
-                    .from('team_votes')
-                    .select('id');
-                
-                if (selectError) {
-                    console.error('❌ Error fetching records:', selectError);
-                    alert('⚠️ Failed to fetch records: ' + selectError.message);
-                    return;
-                }
-                
-                if (!allRecords || allRecords.length === 0) {
-                    console.log('ℹ️ No records to delete');
-                    return;
-                }
-                
-                console.log(`Found ${allRecords.length} records to delete`);
-                
-                // Delete all records
-                const { error: deleteError } = await supabase
+                // First, try to delete all records at once (simpler approach)
+                const { data: deleteResult, error: deleteError } = await supabase
                     .from('team_votes')
                     .delete()
-                    .in('id', allRecords.map(r => r.id));
+                    .neq('id', 0); // Delete where id is not equal to 0 (which means delete everything)
                 
                 if (deleteError) {
                     console.error('❌ Delete error:', deleteError);
-                    alert('⚠️ Failed to delete votes: ' + deleteError.message);
+                    console.error('Error details:', JSON.stringify(deleteError, null, 2));
+                    
+                    // If that fails, try getting all IDs first
+                    console.log('Trying alternative delete method...');
+                    
+                    const { data: allRecords, error: selectError } = await supabase
+                        .from('team_votes')
+                        .select('id');
+                    
+                    if (selectError) {
+                        console.error('❌ Error fetching records:', selectError);
+                        alert('⚠️ Failed to delete. Error: ' + selectError.message);
+                        return;
+                    }
+                    
+                    if (!allRecords || allRecords.length === 0) {
+                        console.log('ℹ️ No records found to delete');
+                        alert('ℹ️ No votes to delete - database is already empty!');
+                        return;
+                    }
+                    
+                    console.log(`Found ${allRecords.length} records to delete`);
+                    
+                    // Delete each record individually
+                    let deleteCount = 0;
+                    for (const record of allRecords) {
+                        const { error: singleDeleteError } = await supabase
+                            .from('team_votes')
+                            .delete()
+                            .eq('id', record.id);
+                        
+                        if (singleDeleteError) {
+                            console.error(`❌ Failed to delete record ${record.id}:`, singleDeleteError);
+                        } else {
+                            deleteCount++;
+                            console.log(`✅ Deleted record ${record.id}`);
+                        }
+                    }
+                    
+                    console.log(`✅ Successfully deleted ${deleteCount} out of ${allRecords.length} records`);
+                    
+                    if (deleteCount < allRecords.length) {
+                        alert(`⚠️ Deleted ${deleteCount} out of ${allRecords.length} votes. Some records may require admin permissions.`);
+                    }
                 } else {
                     console.log('✅ Successfully deleted all votes from database!');
                 }
             } catch (err) {
                 console.error('❌ Delete exception:', err);
+                console.error('Exception details:', err.message, err.stack);
                 alert('⚠️ Failed to delete votes: ' + err.message);
             }
         }
@@ -1135,15 +1171,6 @@
                             <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Voted for themselves ${stats.mostSelfVotesCount} out of ${questions.length} times!</p>
                         </div>
                         ` : ''}
-                        
-                        <div class="result-card">
-                            <h3 style="margin-bottom: 16px; color: #111827;">🎭 Award Distribution</h3>
-                            ${Object.entries(results).map(([person, data]) => `
-                                <p style="color: #6b7280; margin-bottom: 8px;">
-                                    <strong>${profilePics[person]} ${person}:</strong> ${data.awards.length} award${data.awards.length !== 1 ? 's' : ''}
-                                </p>
-                            `).join('')}
-                        </div>
                     </div>
                     
                     <div class="action-buttons">
@@ -1159,79 +1186,51 @@
         }
 
         function calculateResults() {
+            // NEW STRATEGY: Each person gets exactly ONE award - their best win
             const personAwards = {};
-            const awardsGiven = new Set();
-
-            const questionsByVotes = questions.map(q => ({
-                ...q,
-                totalVotes: Object.values(votes[q.id] || {}).reduce((sum, v) => sum + v, 0)
-            })).sort((a, b) => b.totalVotes - a.totalVotes);
-
-            questionsByVotes.forEach((question) => {
-                const questionVotes = votes[question.id] || {};
-                const sortedVoters = Object.entries(questionVotes)
-                    .sort(([, a], [, b]) => b - a)
-                    .filter(([person]) => !personAwards[person]);
-                
-                if (sortedVoters.length > 0 && Object.keys(personAwards).length < teamMembers.length) {
-                    const [winner, voteCount] = sortedVoters[0];
-                    personAwards[winner] = {
-                        awards: [{
-                            award: question.award,
-                            votes: voteCount,
-                            questionId: question.id,
-                            gradient: question.gradient
-                        }],
-                        totalVotes: voteCount
-                    };
-                    awardsGiven.add(question.id);
-                }
-            });
-
-            const peopleWithoutAwards = teamMembers.filter(person => !personAwards[person]);
-            const unusedAwards = questions.filter(q => !awardsGiven.has(q.id));
             
-            peopleWithoutAwards.forEach((person, index) => {
-                if (index < unusedAwards.length) {
-                    const award = unusedAwards[index];
-                    const voteCount = votes[award.id]?.[person] || 0;
+            console.log('\n🎯 CALCULATING AWARDS - ONE PER PERSON STRATEGY');
+            
+            // Step 1: For each person, find their strongest win (most votes received)
+            teamMembers.forEach(person => {
+                let bestAward = null;
+                let bestVoteCount = 0;
+                let bestQuestion = null;
+                
+                questions.forEach(question => {
+                    const questionVotes = votes[question.id] || {};
+                    const voteCount = questionVotes[person] || 0;
+                    
+                    if (voteCount > bestVoteCount) {
+                        bestVoteCount = voteCount;
+                        bestAward = question;
+                    }
+                });
+                
+                // Even if they got 0 votes, give them their "best" question as participation award
+                if (!bestAward && questions.length > 0) {
+                    // Find an unassigned question
+                    const assignedQuestions = Object.values(personAwards).map(p => p.awards[0].questionId);
+                    bestAward = questions.find(q => !assignedQuestions.includes(q.id)) || questions[0];
+                }
+                
+                if (bestAward) {
+                    console.log(`${person}: ${bestAward.award} (${bestVoteCount} votes)`);
+                    
                     personAwards[person] = {
                         awards: [{
-                            award: award.award,
-                            votes: voteCount,
-                            questionId: award.id,
-                            gradient: award.gradient
+                            award: bestAward.award,
+                            votes: bestVoteCount,
+                            questionId: bestAward.id,
+                            gradient: bestAward.gradient
                         }],
-                        totalVotes: voteCount
+                        totalVotes: bestVoteCount
                     };
-                    awardsGiven.add(award.id);
                 }
             });
-
-            const remainingAwards = questions.filter(q => !awardsGiven.has(q.id));
             
-            remainingAwards.forEach((question) => {
-                const questionVotes = votes[question.id] || {};
-                if (Object.keys(questionVotes).length === 0) return;
-                
-                const sortedVoters = Object.entries(questionVotes)
-                    .sort(([, a], [, b]) => b - a);
-                
-                if (sortedVoters.length > 0) {
-                    const [winner, voteCount] = sortedVoters[0];
-                    
-                    if (personAwards[winner]) {
-                        personAwards[winner].awards.push({
-                            award: question.award,
-                            votes: voteCount,
-                            questionId: question.id,
-                            gradient: question.gradient
-                        });
-                        personAwards[winner].totalVotes += voteCount;
-                    }
-                }
-            });
-
+            console.log(`\n✅ Awards assigned: ${Object.keys(personAwards).length} people`);
+            
             return personAwards;
         }
 
@@ -1385,12 +1384,9 @@
                                         </div>
                                         <div style="font-size: 48px; margin-right: 16px;">${profilePics[person]}</div>
                                         <div class="result-info">
-                                            <h3>${person} ${data.awards.length > 1 ? '⭐' : ''}</h3>
-                                            ${data.awards.map(award => {
-                                                const question = questions.find(q => q.id === award.questionId);
-                                                const categoryEmoji = question.category === 'fun' ? '😄' : question.category === 'skills' ? '💪' : '✨';
-                                                return `<p>${award.award} <span style="font-size: 0.8em; color: #9ca3af;">${categoryEmoji}</span></p>`;
-                                            }).join('')}
+                                            <h3>${person}</h3>
+                                            <p>${data.awards[0].award}</p>
+                                            <p style="font-size: 14px; color: #9ca3af; margin-top: 4px;">${data.awards[0].votes} vote${data.awards[0].votes !== 1 ? 's' : ''}</p>
                                         </div>
                                     </div>
                                 </div>
