@@ -1186,50 +1186,98 @@
         }
 
         function calculateResults() {
-            // NEW STRATEGY: Each person gets exactly ONE award - their best win
+            // STRATEGY: Always prioritize highest vote counts
+            // If someone won multiple questions, give them the one where they got MORE votes
             const personAwards = {};
+            const awardsGiven = new Set();
             
-            console.log('\n🎯 CALCULATING AWARDS - ONE PER PERSON STRATEGY');
+            console.log('\n🎯 CALCULATING AWARDS - HIGHEST VOTES ALWAYS WIN');
             
-            // Step 1: For each person, find their strongest win (most votes received)
-            teamMembers.forEach(person => {
-                let bestAward = null;
-                let bestVoteCount = 0;
-                let bestQuestion = null;
+            // Step 1: For each question, find who got the most votes (the winner)
+            const questionWinners = [];
+            questions.forEach(question => {
+                const questionVotes = votes[question.id] || {};
+                const sortedVoters = Object.entries(questionVotes)
+                    .sort(([, a], [, b]) => b - a);
                 
-                questions.forEach(question => {
-                    const questionVotes = votes[question.id] || {};
-                    const voteCount = questionVotes[person] || 0;
-                    
-                    if (voteCount > bestVoteCount) {
-                        bestVoteCount = voteCount;
-                        bestAward = question;
-                    }
-                });
-                
-                // Even if they got 0 votes, give them their "best" question as participation award
-                if (!bestAward && questions.length > 0) {
-                    // Find an unassigned question
-                    const assignedQuestions = Object.values(personAwards).map(p => p.awards[0].questionId);
-                    bestAward = questions.find(q => !assignedQuestions.includes(q.id)) || questions[0];
-                }
-                
-                if (bestAward) {
-                    console.log(`${person}: ${bestAward.award} (${bestVoteCount} votes)`);
-                    
-                    personAwards[person] = {
-                        awards: [{
-                            award: bestAward.award,
-                            votes: bestVoteCount,
-                            questionId: bestAward.id,
-                            gradient: bestAward.gradient
-                        }],
-                        totalVotes: bestVoteCount
-                    };
+                if (sortedVoters.length > 0) {
+                    const [winner, voteCount] = sortedVoters[0];
+                    questionWinners.push({
+                        question,
+                        winner,
+                        voteCount
+                    });
+                    console.log(`Q${question.id} "${question.award}": ${winner} won with ${voteCount} votes`);
                 }
             });
             
-            console.log(`\n✅ Awards assigned: ${Object.keys(personAwards).length} people`);
+            // Step 2: Sort by vote count (highest first)
+            questionWinners.sort((a, b) => b.voteCount - a.voteCount);
+            
+            console.log('\n📊 Sorted by vote count (highest first):');
+            questionWinners.forEach((w, i) => {
+                console.log(`  ${i+1}. ${w.winner}: ${w.question.award} (${w.voteCount} votes)`);
+            });
+            
+            // Step 3: Assign awards in order of vote count
+            // If a person already has an award, skip to next highest
+            console.log('\n✅ Assigning awards:');
+            questionWinners.forEach(winner => {
+                // Skip if this person already has an award
+                if (personAwards[winner.winner]) {
+                    console.log(`  ⏭️  Skip ${winner.winner} for "${winner.question.award}" (${winner.voteCount} votes) - already has award`);
+                    return;
+                }
+                
+                // Skip if this award is already given
+                if (awardsGiven.has(winner.question.id)) {
+                    console.log(`  ⏭️  Skip "${winner.question.award}" - already assigned`);
+                    return;
+                }
+                
+                // Assign this award
+                console.log(`  ✅ ${winner.winner} gets "${winner.question.award}" (${winner.voteCount} votes)`);
+                
+                personAwards[winner.winner] = {
+                    awards: [{
+                        award: winner.question.award,
+                        votes: winner.voteCount,
+                        questionId: winner.question.id,
+                        gradient: winner.question.gradient
+                    }],
+                    totalVotes: winner.voteCount
+                };
+                awardsGiven.add(winner.question.id);
+            });
+            
+            // Step 4: Safety check - if anyone still doesn't have an award
+            const peopleWithoutAwards = teamMembers.filter(p => !personAwards[p]);
+            if (peopleWithoutAwards.length > 0) {
+                console.log('\n⚠️ People without awards:', peopleWithoutAwards);
+                const remainingQuestions = questions.filter(q => !awardsGiven.has(q.id));
+                
+                peopleWithoutAwards.forEach((person, index) => {
+                    if (index < remainingQuestions.length) {
+                        const question = remainingQuestions[index];
+                        const voteCount = (votes[question.id] || {})[person] || 0;
+                        
+                        console.log(`  Giving participation award: ${person} → ${question.award} (${voteCount} votes)`);
+                        
+                        personAwards[person] = {
+                            awards: [{
+                                award: question.award,
+                                votes: voteCount,
+                                questionId: question.id,
+                                gradient: question.gradient
+                            }],
+                            totalVotes: voteCount
+                        };
+                        awardsGiven.add(question.id);
+                    }
+                });
+            }
+            
+            console.log(`\n🏆 Final: ${Object.keys(personAwards).length} people, ${awardsGiven.size} unique awards`);
             
             return personAwards;
         }
