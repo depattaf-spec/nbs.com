@@ -1171,6 +1171,15 @@
                             <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Voted for themselves ${stats.mostSelfVotesCount} out of ${questions.length} times!</p>
                         </div>
                         ` : ''}
+                        
+                        <div class="result-card">
+                            <h3 style="margin-bottom: 16px; color: #111827;">🎭 Award Distribution</h3>
+                            ${Object.entries(results).map(([person, data]) => `
+                                <p style="color: #6b7280; margin-bottom: 8px;">
+                                    <strong>${profilePics[person]} ${person}:</strong> ${data.awards.length} award${data.awards.length !== 1 ? 's' : ''}
+                                </p>
+                            `).join('')}
+                        </div>
                     </div>
                     
                     <div class="action-buttons">
@@ -1186,99 +1195,79 @@
         }
 
         function calculateResults() {
-            // STRATEGY: Always prioritize highest vote counts
-            // If someone won multiple questions, give them the one where they got MORE votes
             const personAwards = {};
             const awardsGiven = new Set();
-            
-            console.log('\n🎯 CALCULATING AWARDS - HIGHEST VOTES ALWAYS WIN');
-            
-            // Step 1: For each question, find who got the most votes (the winner)
-            const questionWinners = [];
-            questions.forEach(question => {
+
+            const questionsByVotes = questions.map(q => ({
+                ...q,
+                totalVotes: Object.values(votes[q.id] || {}).reduce((sum, v) => sum + v, 0)
+            })).sort((a, b) => b.totalVotes - a.totalVotes);
+
+            questionsByVotes.forEach((question) => {
                 const questionVotes = votes[question.id] || {};
+                const sortedVoters = Object.entries(questionVotes)
+                    .sort(([, a], [, b]) => b - a)
+                    .filter(([person]) => !personAwards[person]);
+                
+                if (sortedVoters.length > 0 && Object.keys(personAwards).length < teamMembers.length) {
+                    const [winner, voteCount] = sortedVoters[0];
+                    personAwards[winner] = {
+                        awards: [{
+                            award: question.award,
+                            votes: voteCount,
+                            questionId: question.id,
+                            gradient: question.gradient
+                        }],
+                        totalVotes: voteCount
+                    };
+                    awardsGiven.add(question.id);
+                }
+            });
+
+            const peopleWithoutAwards = teamMembers.filter(person => !personAwards[person]);
+            const unusedAwards = questions.filter(q => !awardsGiven.has(q.id));
+            
+            peopleWithoutAwards.forEach((person, index) => {
+                if (index < unusedAwards.length) {
+                    const award = unusedAwards[index];
+                    const voteCount = votes[award.id]?.[person] || 0;
+                    personAwards[person] = {
+                        awards: [{
+                            award: award.award,
+                            votes: voteCount,
+                            questionId: award.id,
+                            gradient: award.gradient
+                        }],
+                        totalVotes: voteCount
+                    };
+                    awardsGiven.add(award.id);
+                }
+            });
+
+            const remainingAwards = questions.filter(q => !awardsGiven.has(q.id));
+            
+            remainingAwards.forEach((question) => {
+                const questionVotes = votes[question.id] || {};
+                if (Object.keys(questionVotes).length === 0) return;
+                
                 const sortedVoters = Object.entries(questionVotes)
                     .sort(([, a], [, b]) => b - a);
                 
                 if (sortedVoters.length > 0) {
                     const [winner, voteCount] = sortedVoters[0];
-                    questionWinners.push({
-                        question,
-                        winner,
-                        voteCount
-                    });
-                    console.log(`Q${question.id} "${question.award}": ${winner} won with ${voteCount} votes`);
-                }
-            });
-            
-            // Step 2: Sort by vote count (highest first)
-            questionWinners.sort((a, b) => b.voteCount - a.voteCount);
-            
-            console.log('\n📊 Sorted by vote count (highest first):');
-            questionWinners.forEach((w, i) => {
-                console.log(`  ${i+1}. ${w.winner}: ${w.question.award} (${w.voteCount} votes)`);
-            });
-            
-            // Step 3: Assign awards in order of vote count
-            // If a person already has an award, skip to next highest
-            console.log('\n✅ Assigning awards:');
-            questionWinners.forEach(winner => {
-                // Skip if this person already has an award
-                if (personAwards[winner.winner]) {
-                    console.log(`  ⏭️  Skip ${winner.winner} for "${winner.question.award}" (${winner.voteCount} votes) - already has award`);
-                    return;
-                }
-                
-                // Skip if this award is already given
-                if (awardsGiven.has(winner.question.id)) {
-                    console.log(`  ⏭️  Skip "${winner.question.award}" - already assigned`);
-                    return;
-                }
-                
-                // Assign this award
-                console.log(`  ✅ ${winner.winner} gets "${winner.question.award}" (${winner.voteCount} votes)`);
-                
-                personAwards[winner.winner] = {
-                    awards: [{
-                        award: winner.question.award,
-                        votes: winner.voteCount,
-                        questionId: winner.question.id,
-                        gradient: winner.question.gradient
-                    }],
-                    totalVotes: winner.voteCount
-                };
-                awardsGiven.add(winner.question.id);
-            });
-            
-            // Step 4: Safety check - if anyone still doesn't have an award
-            const peopleWithoutAwards = teamMembers.filter(p => !personAwards[p]);
-            if (peopleWithoutAwards.length > 0) {
-                console.log('\n⚠️ People without awards:', peopleWithoutAwards);
-                const remainingQuestions = questions.filter(q => !awardsGiven.has(q.id));
-                
-                peopleWithoutAwards.forEach((person, index) => {
-                    if (index < remainingQuestions.length) {
-                        const question = remainingQuestions[index];
-                        const voteCount = (votes[question.id] || {})[person] || 0;
-                        
-                        console.log(`  Giving participation award: ${person} → ${question.award} (${voteCount} votes)`);
-                        
-                        personAwards[person] = {
-                            awards: [{
-                                award: question.award,
-                                votes: voteCount,
-                                questionId: question.id,
-                                gradient: question.gradient
-                            }],
-                            totalVotes: voteCount
-                        };
-                        awardsGiven.add(question.id);
+                    
+                    if (personAwards[winner]) {
+                        personAwards[winner].awards.push({
+                            award: question.award,
+                            votes: voteCount,
+                            questionId: question.id,
+                            gradient: question.gradient
+                        });
+                        personAwards[winner].totalVotes += voteCount;
                     }
-                });
-            }
-            
-            console.log(`\n🏆 Final: ${Object.keys(personAwards).length} people, ${awardsGiven.size} unique awards`);
-            
+                }
+            });
+
             return personAwards;
         }
 
@@ -1432,9 +1421,12 @@
                                         </div>
                                         <div style="font-size: 48px; margin-right: 16px;">${profilePics[person]}</div>
                                         <div class="result-info">
-                                            <h3>${person}</h3>
-                                            <p>${data.awards[0].award}</p>
-                                            <p style="font-size: 14px; color: #9ca3af; margin-top: 4px;">${data.awards[0].votes} vote${data.awards[0].votes !== 1 ? 's' : ''}</p>
+                                            <h3>${person} ${data.awards.length > 1 ? '⭐' : ''}</h3>
+                                            ${data.awards.map(award => {
+                                                const question = questions.find(q => q.id === award.questionId);
+                                                const categoryEmoji = question.category === 'fun' ? '😄' : question.category === 'skills' ? '💪' : '✨';
+                                                return `<p>${award.award} <span style="font-size: 0.8em; color: #9ca3af;">${categoryEmoji}</span></p>`;
+                                            }).join('')}
                                         </div>
                                     </div>
                                 </div>
